@@ -1,0 +1,13 @@
+ems.suo
+.DS_Store
+**/obj
+**/bin
+**/dist
+**/.vscode/solution-explorer/
+**/.vs/
+**/TestResults
+coverage.opencover.xml
+**/*.csproj.user
+**/mono_crash.*json
+git.commit.hash.txt
+
