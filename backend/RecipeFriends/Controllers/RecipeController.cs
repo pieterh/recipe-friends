@@ -5,7 +5,9 @@ using RecipeFriends.Shared.DTO;
 using RecipeFriends.Model;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Net.Mime;
+using Castle.Core.Resource;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace RecipeFriends.Controllers
 {
@@ -20,15 +22,39 @@ namespace RecipeFriends.Controllers
             _context = context;
         }
 
-        // GET: api/Recipe
+        /// <summary>
+        /// Get a list of all recipes
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     GET api/Recipe
+        /// </remarks>
         [HttpGet]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [SwaggerResponse(200, "Returns list of all recipes.", typeof(IEnumerable<Shared.DTO.Recipe>))]
+        [SwaggerResponse(500, "Unexpected")]
         public ActionResult<IEnumerable<Shared.DTO.Recipe>> GetRecipes()
         {
             return _context.Recipes.Include(r => r.Tags).ToList().Select(ToRecipeDTO).ToList();
         }
 
-        // GET: api/Recipe/5
+        /// <summary>
+        /// Get the details of a specific recipe
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     GET api/Recipe/5
+        /// </remarks>
         [HttpGet("{id}")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [SwaggerResponse(200, "Returns list of all recipes.", typeof(Shared.DTO.Recipe))]
+        [SwaggerResponse(500, "Unexpected")]
         public ActionResult<Shared.DTO.Recipe> GetRecipe(int id)
         {
             var recipe = _context.Recipes.Find(id);
@@ -40,19 +66,60 @@ namespace RecipeFriends.Controllers
             return ToRecipeDTO(recipe);
         }
 
-        // POST: api/Recipe
-        [HttpPost]
-        public async Task<IActionResult> CreateRecipe(Shared.DTO.Recipe recipeDTO)
+        /// <summary>
+        /// Creates a new recipe.
+        /// </summary>
+        /// <param name="recipe">The model for creating a new recipe.</param>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     POST api/Recipe
+        ///     {
+        ///        "id": 1,
+        ///        "title": "Item #1",
+        ///        "description": "asd",
+        ///        "content": "asd",
+        ///        "tags": [
+        ///          "Pork"
+        ///        ]
+        ///     }
+        ///
+        /// </remarks>
+        [HttpPost()]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [SwaggerResponse(201, "Returns the newly created recipe.", typeof(Shared.DTO.Recipe))]
+        [SwaggerResponse(400, "If the recipe is null or not valid.")]
+        [SwaggerResponse(500, "Unexpected")]
+        public async Task<ActionResult<Shared.DTO.Recipe>> CreateRecipe(Shared.DTO.Recipe recipe)
         {
-            var recipe = ToRecipe(recipeDTO);
-            _context.Recipes.Add(recipe);
+            var recipeModel = ToRecipe(recipe);
+            _context.Recipes.Add(recipeModel);
             await _context.SaveChangesAsync();
-            var r = _context.Recipes.Include(r => r.Tags).First(r => r.Id == recipe.Id);
-            return CreatedAtAction(nameof(GetRecipe), new { id = recipe.Id }, ToRecipeDTO(r));
+            var r = _context.Recipes.Include(r => r.Tags).First(r => r.Id == recipeModel.Id);
+            return new CreatedAtActionResult(nameof(GetRecipe),
+                                "Recipe",
+                                new { id = recipeModel.Id },
+                                ToRecipeDTO(r));
         }
 
-        // PUT: api/Recipe/5
+        /// <summary>
+        /// Update the details of a specific recipe
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     PUT api/Recipe/5
+        /// </remarks>
         [HttpPut("{id}")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces("application/json")]
+        [SwaggerResponse(204, "Updated")]
+        [SwaggerResponse(400, "If the recipe is null or not valid.")]
+        [SwaggerResponse(404, "If the recipe is not found.")]
+        [SwaggerResponse(500, "Unexpected")]
         public async Task<IActionResult> UpdateRecipe(int id, Shared.DTO.Recipe recipeDTO)
         {
             if (id != recipeDTO.Id)
@@ -69,8 +136,12 @@ namespace RecipeFriends.Controllers
 
             // Update basic properties
             existingRecipe.Title = recipeDTO.Title;
+            existingRecipe.Catagory = recipeDTO.Catagory;
+            existingRecipe.ShortDescription = recipeDTO.ShortDescription;
             existingRecipe.Description = recipeDTO.Description;
-            existingRecipe.Content = recipeDTO.Content;
+            existingRecipe.Directions = recipeDTO.Directions;
+            existingRecipe.PreparationTime = recipeDTO.PreparationTime;
+            existingRecipe.CookingTime = recipeDTO.CookingTime;
 
             // Handle tags
             // Identify tags that are no longer associated
@@ -93,7 +164,7 @@ namespace RecipeFriends.Controllers
                     if (tagRecipe == null)
                     {
                         tagRecipe = new Model.Tag() { Name = tagDTO };
-                        _context.Tags.Add(tagRecipe);                        
+                        _context.Tags.Add(tagRecipe);
                     }
                     existingRecipe.Tags.Add(tagRecipe);
                 }
@@ -121,6 +192,8 @@ namespace RecipeFriends.Controllers
         }
 
         [HttpPost("tags")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces("application/json")]
         public async Task<ActionResult<Shared.DTO.Tag>> CreateTag(Shared.DTO.Tag tagDTO)
         {
             var tag = new Model.Tag
@@ -135,6 +208,8 @@ namespace RecipeFriends.Controllers
         }
 
         [HttpGet("tags")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces("application/json")]
         public async Task<ActionResult<IEnumerable<Shared.DTO.Tag>>> GetTags()
         {
             var tags = await _context.Tags.Select(t => new Shared.DTO.Tag
@@ -147,6 +222,8 @@ namespace RecipeFriends.Controllers
         }
 
         [HttpPut("tags/{id}")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces("application/json")]
         public async Task<IActionResult> UpdateTag(int id, Shared.DTO.Tag tagDTO)
         {
             if (id != tagDTO.Id)
@@ -181,7 +258,10 @@ namespace RecipeFriends.Controllers
 
             return NoContent();
         }
+
         [HttpGet("tags/{id}")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces("application/json")]
         public async Task<ActionResult<Shared.DTO.Tag>> GetTag(int id)
         {
             var tag = await _context.Tags.FindAsync(id);
@@ -194,16 +274,18 @@ namespace RecipeFriends.Controllers
             return new Shared.DTO.Tag { Id = tag.Id, Name = tag.Name };
         }
 
-
-        // ... [potentially other actions like DELETE, etc.]
         private Model.Recipe ToRecipe(Shared.DTO.Recipe recipeDTO)
         {
-            var recipe =  new Model.Recipe
+            var recipe = new Model.Recipe
             {
                 Id = recipeDTO.Id,
                 Title = recipeDTO.Title,
+                Catagory = recipeDTO.Catagory,
+                ShortDescription = recipeDTO.ShortDescription,
                 Description = recipeDTO.Description,
-                Content = recipeDTO.Content,
+                Directions = recipeDTO.Directions,
+                PreparationTime = recipeDTO.PreparationTime,
+                CookingTime = recipeDTO.CookingTime
             };
 
             foreach (var tagDTO in recipeDTO.Tags)
@@ -231,18 +313,16 @@ namespace RecipeFriends.Controllers
             {
                 Id = recipe.Id,
                 Title = recipe.Title,
+                Catagory = recipe.Catagory,
+                ShortDescription = recipe.ShortDescription,
                 Description = recipe.Description,
-                Content = recipe.Content,
+                Directions = recipe.Directions,
+                PreparationTime = recipe.PreparationTime,
+                CookingTime = recipe.CookingTime,
                 Tags = recipe.Tags.Select(rt => rt.Name).ToList()
             };
         }
     }
-
-
-
-
-
-
 }
 
 

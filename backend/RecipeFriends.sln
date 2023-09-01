@@ -5,7 +5,7 @@ VisualStudioVersion = 17.6.33927.249
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends", "RecipeFriends\RecipeFriends.csproj", "{DCC540CA-BD3E-46E3-9048-46EEEEF1EFE6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends.Shared", "RecipiFriends.Shared\RecipeFriends.Shared.csproj", "{FB946989-3A15-4942-A919-F643C3139D3F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends.Shared", "RecipeFriends.Shared/RecipeFriends.Shared.csproj", "{FB946989-3A15-4942-A919-F643C3139D3F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
