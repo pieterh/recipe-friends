@@ -35,16 +35,16 @@
   <ItemGroup>
     <Folder Include="Migrations\" />
     <Folder Include="v1\" />
-    <Folder Include="v1\Models\" />
     <Folder Include="v1\Controllers\" />
     <Folder Include="Swagger\" />
+    <Folder Include="Models\" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="Migrations\" />
     <None Remove="v1\" />
-    <None Remove="v1\Models\" />
     <None Remove="v1\Controllers\" />
     <None Remove="Swagger\" />
+    <None Remove="Models\" />
   </ItemGroup>
 </Project>

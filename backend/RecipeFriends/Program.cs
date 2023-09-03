@@ -73,6 +73,7 @@ builder.Services.AddApiVersioning(
                         // the defining controller's namespace
                         options.Conventions.Add(new VersionByNamespaceConvention());
                     });
+builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
 builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
 {

@@ -1,63 +1,61 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RecipeFriends.Data;
-using RecipeFriends.Shared.DTO;
-using RecipeFriends.Models;
-using System.Collections.Generic;
-using System.Linq;
+﻿
 using System.Net.Mime;
-using Castle.Core.Resource;
-using Swashbuckle.AspNetCore.Annotations;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.Annotations;
+using RecipeFriends.Data;
+using RecipeFriends.Models;
+using RecipeFriends.Shared.DTO.v1;
 
 namespace RecipeFriends.Controllers
 {
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
-    public class RecipeController : ControllerBase
+    public class RecipesController : ControllerBase
     {
         private readonly RecipeFriendsContext _context;
 
-        public RecipeController(RecipeFriendsContext context)
+        public RecipesController(RecipeFriendsContext context)
         {
             _context = context;
         }
 
         /// <summary>
-        /// Get a list of all recipes
+        /// Get a list of all recipes with there basic information.
         /// </summary>
         /// <remarks>
         /// Sample request:
         /// 
-        ///     GET api/v1/Recipe
+        ///     GET api/v1/recipes
         /// </remarks>
         [HttpGet]
         [Consumes(MediaTypeNames.Application.Json)]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [SwaggerResponse(200, "Returns list of all recipes.", typeof(IEnumerable<Shared.DTO.Recipe>))]
+        [SwaggerResponse(200, "Returns list of all recipes.", typeof(IEnumerable<RecipeInfo>))]
         [SwaggerResponse(500, "Unexpected")]
-        public ActionResult<IEnumerable<Shared.DTO.Recipe>> GetRecipes()
+        public ActionResult<IEnumerable<RecipeInfo>> GetRecipes()
         {
-            return _context.Recipes.Include(r => r.Tags).ToList().Select(ToRecipeDTO).ToList();
+            return _context.Recipes.Include(r => r.Tags).ToList().Select(ToRecipeInfoDTO).ToList();
         }
 
         /// <summary>
-        /// Get the details of a specific recipe
+        /// Get the details of a specific recipe.
         /// </summary>
         /// <remarks>
         /// Sample request:
         /// 
-        ///     GET api/v1/Recipe/5
+        ///     GET api/v1/recipes/5
         /// </remarks>
         [HttpGet("{id}")]
         [Consumes(MediaTypeNames.Application.Json)]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [SwaggerResponse(200, "Returns list of all recipes.", typeof(Shared.DTO.Recipe))]
+        [SwaggerResponse(200, "Returns details of a recipe.", typeof(RecipeDetails))]
         [SwaggerResponse(500, "Unexpected")]
-        public ActionResult<Shared.DTO.Recipe> GetRecipe(int id)
+        public ActionResult<RecipeDetails> GetRecipe(int id)
         {
             var recipe = _context.Recipes.Find(id);
             if (recipe == null)
@@ -65,7 +63,7 @@ namespace RecipeFriends.Controllers
                 return NotFound();
             }
             ;
-            return ToRecipeDTO(recipe);
+            return ToRecipeDetailsDTO(recipe);
         }
 
         /// <summary>
@@ -75,7 +73,7 @@ namespace RecipeFriends.Controllers
         /// <remarks>
         /// Sample request:
         ///
-        ///     POST api/v1/Recipe
+        ///     POST api/v1/recipes
         ///     {
         ///        "id": 1,
         ///        "title": "Item #1",
@@ -92,10 +90,10 @@ namespace RecipeFriends.Controllers
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [SwaggerResponse(201, "Returns the newly created recipe.", typeof(Shared.DTO.Recipe))]
+        [SwaggerResponse(201, "Returns the newly created recipe.", typeof(RecipeDetails))]
         [SwaggerResponse(400, "If the recipe is null or not valid.")]
         [SwaggerResponse(500, "Unexpected")]
-        public async Task<ActionResult<Shared.DTO.Recipe>> CreateRecipe(Shared.DTO.Recipe recipe)
+        public async Task<ActionResult<RecipeDetails>> CreateRecipe(RecipeDetails recipe)
         {
             var recipeModel = ToRecipe(recipe);
             _context.Recipes.Add(recipeModel);
@@ -104,16 +102,16 @@ namespace RecipeFriends.Controllers
             return new CreatedAtActionResult(nameof(GetRecipe),
                                 "Recipe",
                                 new { id = recipeModel.Id },
-                                ToRecipeDTO(r));
+                                ToRecipeDetailsDTO(r));
         }
 
         /// <summary>
-        /// Update the details of a specific recipe
+        /// Update the details of a specific recipe.
         /// </summary>
         /// <remarks>
         /// Sample request:
         /// 
-        ///     PUT api/v1/Recipe/5
+        ///     PUT api/v1/recipes/5
         /// </remarks>
         [HttpPut("{id}")]
         [Consumes(MediaTypeNames.Application.Json)]
@@ -122,7 +120,7 @@ namespace RecipeFriends.Controllers
         [SwaggerResponse(400, "If the recipe is null or not valid.")]
         [SwaggerResponse(404, "If the recipe is not found.")]
         [SwaggerResponse(500, "Unexpected")]
-        public async Task<IActionResult> UpdateRecipe(int id, Shared.DTO.Recipe recipeDTO)
+        public async Task<IActionResult> UpdateRecipe(int id, RecipeDetails recipeDTO)
         {
             if (id != recipeDTO.Id)
             {
@@ -193,92 +191,9 @@ namespace RecipeFriends.Controllers
             return NoContent();
         }
 
-        [HttpPost("tags")]
-        [Consumes(MediaTypeNames.Application.Json)]
-        [Produces("application/json")]
-        public async Task<ActionResult<Shared.DTO.Tag>> CreateTag(Shared.DTO.Tag tagDTO)
+        private Recipe ToRecipe(RecipeDetails recipeDTO)
         {
-            var tag = new Models.Tag
-            {
-                Name = tagDTO.Name
-            };
-
-            _context.Tags.Add(tag);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetTag), new { id = tag.Id }, new Shared.DTO.Tag { Id = tag.Id, Name = tag.Name });
-        }
-
-        [HttpGet("tags")]
-        [Consumes(MediaTypeNames.Application.Json)]
-        [Produces("application/json")]
-        public async Task<ActionResult<IEnumerable<Shared.DTO.Tag>>> GetTags()
-        {
-            var tags = await _context.Tags.Select(t => new Shared.DTO.Tag
-            {
-                Id = t.Id,
-                Name = t.Name
-            }).ToListAsync();
-
-            return Ok(tags);
-        }
-
-        [HttpPut("tags/{id}")]
-        [Consumes(MediaTypeNames.Application.Json)]
-        [Produces("application/json")]
-        public async Task<IActionResult> UpdateTag(int id, Shared.DTO.Tag tagDTO)
-        {
-            if (id != tagDTO.Id)
-            {
-                return BadRequest("Id mismatch");
-            }
-
-            var existingTag = await _context.Tags.FindAsync(id);
-
-            if (existingTag == null)
-            {
-                return NotFound();
-            }
-
-            existingTag.Name = tagDTO.Name;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Tags.Any(e => e.Id == id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        [HttpGet("tags/{id}")]
-        [Consumes(MediaTypeNames.Application.Json)]
-        [Produces("application/json")]
-        public async Task<ActionResult<Shared.DTO.Tag>> GetTag(int id)
-        {
-            var tag = await _context.Tags.FindAsync(id);
-
-            if (tag == null)
-            {
-                return NotFound();
-            }
-
-            return new Shared.DTO.Tag { Id = tag.Id, Name = tag.Name };
-        }
-
-        private Models.Recipe ToRecipe(Shared.DTO.Recipe recipeDTO)
-        {
-            var recipe = new Models.Recipe
+            var recipe = new Recipe
             {
                 Id = recipeDTO.Id,
                 Title = recipeDTO.Title,
@@ -297,7 +212,7 @@ namespace RecipeFriends.Controllers
                 if (existingTag == null)
                 {
                     // The tag doesn't exist, so create it
-                    existingTag = new Models.Tag { Name = tagDTO };
+                    existingTag = new Tag { Name = tagDTO };
                     _context.Tags.Add(existingTag);
                 }
 
@@ -307,11 +222,11 @@ namespace RecipeFriends.Controllers
             return recipe;
         }
 
-        private Shared.DTO.Recipe ToRecipeDTO(Models.Recipe recipe)
+        private RecipeDetails ToRecipeDetailsDTO(Recipe recipe)
         {
             // make sure the tags are loaded
             _context.Entry(recipe).Collection(r => r.Tags).Load();
-            return new Shared.DTO.Recipe
+            return new RecipeDetails
             {
                 Id = recipe.Id,
                 Title = recipe.Title,
@@ -324,7 +239,19 @@ namespace RecipeFriends.Controllers
                 Tags = recipe.Tags.Select(rt => rt.Name).ToList()
             };
         }
+
+        private RecipeInfo ToRecipeInfoDTO(Recipe recipe)
+        {
+            // make sure the tags are loaded
+            _context.Entry(recipe).Collection(r => r.Tags).Load();
+            return new RecipeInfo
+            {
+                Id = recipe.Id,
+                Title = recipe.Title,
+                Catagory = recipe.Catagory,
+                ShortDescription = recipe.ShortDescription,
+                Tags = recipe.Tags.Select(rt => rt.Name).ToList()
+            };
+        }
     }
 }
-
-

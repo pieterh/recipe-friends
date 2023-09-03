@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RecipeFriends.Shared.DTO
+namespace RecipeFriends.Shared.DTO.v1
 {
-    public class Tag
+    public class TagInfo
     {
         public int Id { get; set; }
         public required string Name { get; set; }

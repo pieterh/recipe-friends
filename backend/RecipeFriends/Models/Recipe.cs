@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using RecipeFriends.Shared.DTO;
+using RecipeFriends.Shared.DTO.v1;
 
 namespace RecipeFriends.Models;
 

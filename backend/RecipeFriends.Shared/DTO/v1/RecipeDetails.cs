@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace RecipeFriends.Shared.DTO;
+namespace RecipeFriends.Shared.DTO.v1;
 
-public class Recipe
+public class RecipeDetails
 {
     [Range(1, Double.MaxValue)]
     public int Id { get; set; }
