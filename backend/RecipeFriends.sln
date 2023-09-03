@@ -1,11 +1,11 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33927.249
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends", "RecipeFriends\RecipeFriends.csproj", "{DCC540CA-BD3E-46E3-9048-46EEEEF1EFE6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends.Shared", "RecipeFriends.Shared/RecipeFriends.Shared.csproj", "{FB946989-3A15-4942-A919-F643C3139D3F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends.Shared", "..\shared\RecipeFriends.Shared\RecipeFriends.Shared.csproj", "{4D62F590-8D6E-43F8-8028-EAC4AE439150}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{DCC540CA-BD3E-46E3-9048-46EEEEF1EFE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCC540CA-BD3E-46E3-9048-46EEEEF1EFE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCC540CA-BD3E-46E3-9048-46EEEEF1EFE6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FB946989-3A15-4942-A919-F643C3139D3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FB946989-3A15-4942-A919-F643C3139D3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FB946989-3A15-4942-A919-F643C3139D3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FB946989-3A15-4942-A919-F643C3139D3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D62F590-8D6E-43F8-8028-EAC4AE439150}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D62F590-8D6E-43F8-8028-EAC4AE439150}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D62F590-8D6E-43F8-8028-EAC4AE439150}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D62F590-8D6E-43F8-8028-EAC4AE439150}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

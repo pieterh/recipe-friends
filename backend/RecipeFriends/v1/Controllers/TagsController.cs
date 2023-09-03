@@ -112,7 +112,8 @@ namespace RecipeFriends.Controllers
         /// <summary>
         /// Update the details of a specific tag.
         /// </summary>
-        /// <param name="tag">The model for creating a new tag.</param>
+        /// <param name="id">The id of the tag that needs updating.</param>
+        /// <param name="tag">The model for updating an existing tag.</param>
         /// <remarks>
         /// Sample request:
         /// 

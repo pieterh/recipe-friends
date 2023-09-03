@@ -29,10 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RecipeFriends.Shared\RecipeFriends.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Migrations\" />
     <Folder Include="v1\" />
     <Folder Include="v1\Controllers\" />
@@ -46,5 +42,10 @@
     <None Remove="v1\Controllers\" />
     <None Remove="Swagger\" />
     <None Remove="Models\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\RecipeFriends.Shared\RecipeFriends.Shared.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
   </ItemGroup>
 </Project>
