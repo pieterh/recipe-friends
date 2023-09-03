@@ -8,6 +8,8 @@ using Microsoft.OpenApi.Models;
 using RecipeFriends.Data;
 using RecipeFriends.Swagger;
 
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -73,6 +75,9 @@ builder.Services.AddApiVersioning(
                         // the defining controller's namespace
                         options.Conventions.Add(new VersionByNamespaceConvention());
                     });
+
+
+
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
 builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
@@ -107,7 +112,28 @@ builder.Services.AddResponseCompression(options =>
 });
 
 builder.Services.AddDbContext<RecipeFriendsContext>(options => options.UseSqlite($"Data Source={RecipeFriendsContext.DbPath}"));
+#if DEBUG
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "_myAllowSpecificOrigins",
+          builder => {
+              builder
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                ;
+          });
+});
+
+
+#endif
+        
+
 var app = builder.Build();
+
+// put this between UseRouting and map of controllers / swagger
+// and CORS needs to be before response caching
+app.UseCors("_myAllowSpecificOrigins");
 
 using (var scope = app.Services.CreateScope())
 {
