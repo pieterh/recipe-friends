@@ -1,0 +1,75 @@
+﻿@page "/recipe/edit/{Id:int}"
+@using RecipeFriends.Shared.DTO.v1
+@using RecipeFriends.Services
+@inject IRecipeService RecipeService
+@inject NavigationManager NavigationManager
+
+<h1>Edit Recipe</h1>
+
+@if (recipeDetails == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="recipeDetails" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <InputText id="title" @bind-Value="recipeDetails.Title" />
+        <InputSelect id="catagory" TValue="Catagories" @bind-Value="recipeDetails.Catagory">
+            @foreach (var cat in Enum.GetValues<Catagories>())
+            {
+                <option value="@cat">@cat</option>
+            }
+        </InputSelect>
+        <InputText id="shortDescription" @bind-Value="recipeDetails.ShortDescription" />
+        <InputTextArea id="description" @bind-Value="recipeDetails.Description" />
+        <InputTextArea id="directions" @bind-Value="recipeDetails.Directions" />
+        @*<InputText id="preparationTime" @bind-Value="recipeDetails.PreparationTime" />
+        <InputText id="cookingTime" @bind-Value="recipeDetails.CookingTime" />*@
+        <!-- For Tags, you can use some other UI element like checkbox list, multi-select etc -->
+
+        <button type="submit">Update</button>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(saveStatusMessage))
+    {
+        <div class="alert alert-info">
+            @saveStatusMessage
+        </div>
+    }
+
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private RecipeDetails? recipeDetails;
+    private string saveStatusMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        recipeDetails = await RecipeService.GetRecipeDetailsAsync(Id, CancellationToken.None);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (recipeDetails != null)
+        {
+            bool success = await RecipeService.SaveRecipeDetailsAsync(recipeDetails, CancellationToken.None);
+
+            if (success)
+            {
+                // Update is successful, navigate to some other page or show success message
+                saveStatusMessage = "Successfully saved.";
+                NavigationManager.NavigateTo("/recipe/list");
+            }
+            else
+            {
+                // Show error message
+                saveStatusMessage = "Failed to save.";
+            }
+        }
+    }
+}

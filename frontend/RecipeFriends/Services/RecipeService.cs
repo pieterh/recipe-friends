@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http.Json;
 using System.Net.Sockets;
+using System.Text;
 using System.Text.Json;
 using RecipeFriends.Shared.DTO.v1;
 
@@ -48,6 +49,23 @@ public class RecipeService : IRecipeService
                 throw new Exception($"Uhh {response.StatusCode}");
         }
 
+    }
+
+    async Task<bool> IRecipeService.SaveRecipeDetailsAsync(RecipeDetails recipeDetails, CancellationToken cancellationToken)
+    {
+        var json = JsonSerializer.Serialize(recipeDetails);
+        var stringContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PutAsync($"api/v1/recipes/{recipeDetails.Id}", stringContent, cancellationToken);
+        if (response.IsSuccessStatusCode)
+        {
+            return true;
+        }
+        else
+        {
+            // You might want to add more error handling here.
+            return false;
+        }
     }
 }
 
