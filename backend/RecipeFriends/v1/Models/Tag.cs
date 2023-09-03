@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace RecipeFriends.Model;
+namespace RecipeFriends.Models;
 
 public class Tag
 {

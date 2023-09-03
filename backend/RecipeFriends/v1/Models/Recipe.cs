@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using RecipeFriends.Shared.DTO;
 
-namespace RecipeFriends.Model;
+namespace RecipeFriends.Models;
 
 public class Recipe
 {

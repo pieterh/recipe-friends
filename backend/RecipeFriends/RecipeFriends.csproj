@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <UserSecretsId>de19c94e-5ef5-4363-a0cc-a3657663041c</UserSecretsId>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'https' " />
@@ -23,6 +24,8 @@
     <PackageReference Include="NLog" Version="5.2.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
+    <PackageReference Include="Asp.Versioning.Mvc" Version="7.0.1" />
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="7.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,12 +33,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Helpers\" />
     <Folder Include="Migrations\" />
+    <Folder Include="v1\" />
+    <Folder Include="v1\Models\" />
+    <Folder Include="v1\Controllers\" />
+    <Folder Include="Swagger\" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Helpers\" />
     <None Remove="Migrations\" />
+    <None Remove="v1\" />
+    <None Remove="v1\Models\" />
+    <None Remove="v1\Controllers\" />
+    <None Remove="Swagger\" />
   </ItemGroup>
 </Project>

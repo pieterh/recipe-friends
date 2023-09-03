@@ -2,17 +2,19 @@
 using Microsoft.EntityFrameworkCore;
 using RecipeFriends.Data;
 using RecipeFriends.Shared.DTO;
-using RecipeFriends.Model;
+using RecipeFriends.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mime;
 using Castle.Core.Resource;
 using Swashbuckle.AspNetCore.Annotations;
+using Asp.Versioning;
 
 namespace RecipeFriends.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class RecipeController : ControllerBase
     {
         private readonly RecipeFriendsContext _context;
@@ -28,7 +30,7 @@ namespace RecipeFriends.Controllers
         /// <remarks>
         /// Sample request:
         /// 
-        ///     GET api/Recipe
+        ///     GET api/v1/Recipe
         /// </remarks>
         [HttpGet]
         [Consumes(MediaTypeNames.Application.Json)]
@@ -47,7 +49,7 @@ namespace RecipeFriends.Controllers
         /// <remarks>
         /// Sample request:
         /// 
-        ///     GET api/Recipe/5
+        ///     GET api/v1/Recipe/5
         /// </remarks>
         [HttpGet("{id}")]
         [Consumes(MediaTypeNames.Application.Json)]
@@ -73,7 +75,7 @@ namespace RecipeFriends.Controllers
         /// <remarks>
         /// Sample request:
         ///
-        ///     POST api/Recipe
+        ///     POST api/v1/Recipe
         ///     {
         ///        "id": 1,
         ///        "title": "Item #1",
@@ -111,7 +113,7 @@ namespace RecipeFriends.Controllers
         /// <remarks>
         /// Sample request:
         /// 
-        ///     PUT api/Recipe/5
+        ///     PUT api/v1/Recipe/5
         /// </remarks>
         [HttpPut("{id}")]
         [Consumes(MediaTypeNames.Application.Json)]
@@ -163,7 +165,7 @@ namespace RecipeFriends.Controllers
                     var tagRecipe = _context.Tags.FirstOrDefault((x) => x.Name == tagDTO);
                     if (tagRecipe == null)
                     {
-                        tagRecipe = new Model.Tag() { Name = tagDTO };
+                        tagRecipe = new Models.Tag() { Name = tagDTO };
                         _context.Tags.Add(tagRecipe);
                     }
                     existingRecipe.Tags.Add(tagRecipe);
@@ -196,7 +198,7 @@ namespace RecipeFriends.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Shared.DTO.Tag>> CreateTag(Shared.DTO.Tag tagDTO)
         {
-            var tag = new Model.Tag
+            var tag = new Models.Tag
             {
                 Name = tagDTO.Name
             };
@@ -274,9 +276,9 @@ namespace RecipeFriends.Controllers
             return new Shared.DTO.Tag { Id = tag.Id, Name = tag.Name };
         }
 
-        private Model.Recipe ToRecipe(Shared.DTO.Recipe recipeDTO)
+        private Models.Recipe ToRecipe(Shared.DTO.Recipe recipeDTO)
         {
-            var recipe = new Model.Recipe
+            var recipe = new Models.Recipe
             {
                 Id = recipeDTO.Id,
                 Title = recipeDTO.Title,
@@ -295,7 +297,7 @@ namespace RecipeFriends.Controllers
                 if (existingTag == null)
                 {
                     // The tag doesn't exist, so create it
-                    existingTag = new Model.Tag { Name = tagDTO };
+                    existingTag = new Models.Tag { Name = tagDTO };
                     _context.Tags.Add(existingTag);
                 }
 
@@ -305,7 +307,7 @@ namespace RecipeFriends.Controllers
             return recipe;
         }
 
-        private Shared.DTO.Recipe ToRecipeDTO(Model.Recipe recipe)
+        private Shared.DTO.Recipe ToRecipeDTO(Models.Recipe recipe)
         {
             // make sure the tags are loaded
             _context.Entry(recipe).Collection(r => r.Tags).Load();

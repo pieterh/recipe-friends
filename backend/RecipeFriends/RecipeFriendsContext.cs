@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Hosting;
 using RecipeFriends.Controllers;
-using RecipeFriends.Model;
+using RecipeFriends.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
