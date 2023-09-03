@@ -224,8 +224,10 @@ namespace RecipeFriends.Controllers
 
         private RecipeDetails ToRecipeDetailsDTO(Recipe recipe)
         {
-            // make sure the tags are loaded
+            // make sure the related lists are loaded
+            _context.Entry(recipe).Collection(r => r.Ingredients).Load();
             _context.Entry(recipe).Collection(r => r.Tags).Load();
+
             return new RecipeDetails
             {
                 Id = recipe.Id,
@@ -236,14 +238,16 @@ namespace RecipeFriends.Controllers
                 Directions = recipe.Directions,
                 PreparationTime = recipe.PreparationTime,
                 CookingTime = recipe.CookingTime,
+                Ingredients = recipe.Ingredients.Select(ToIngredientDTO).ToList(),
                 Tags = recipe.Tags.Select(rt => rt.Name).ToList()
             };
         }
 
         private RecipeInfo ToRecipeInfoDTO(Recipe recipe)
         {
-            // make sure the tags are loaded
+            // make sure the related lists are loaded
             _context.Entry(recipe).Collection(r => r.Tags).Load();
+
             return new RecipeInfo
             {
                 Id = recipe.Id,
@@ -251,6 +255,18 @@ namespace RecipeFriends.Controllers
                 Catagory = recipe.Catagory,
                 ShortDescription = recipe.ShortDescription,
                 Tags = recipe.Tags.Select(rt => rt.Name).ToList()
+            };
+        }
+
+        private IngredientDetails ToIngredientDTO(Ingredient ingredient)
+        {
+            return new IngredientDetails
+            {
+                Id = ingredient.Id,
+                Name = ingredient.Name,
+                Amount = ingredient.Amount,
+                Measurement = ingredient.Measurement,
+                Order = ingredient.Order
             };
         }
     }

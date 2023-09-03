@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RecipeFriends.Models;
 
+[Table("Tag")]
 public class Tag
 {
     [Key]

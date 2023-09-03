@@ -4,6 +4,7 @@ using RecipeFriends.Shared.DTO.v1;
 
 namespace RecipeFriends.Models;
 
+[Table("Recipe")]
 public class Recipe
 {
     [Key]
@@ -17,6 +18,7 @@ public class Recipe
     public required TimeOnly PreparationTime { get; set; }
     public required TimeOnly CookingTime { get; set; }
 
-    // Navigation property for the many-to-many relationship
+    // Navigation properties for the many-to-many relationships
+    public virtual ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
     public virtual ICollection<Tag> Tags { get; set; } = new List<Tag>();
 }

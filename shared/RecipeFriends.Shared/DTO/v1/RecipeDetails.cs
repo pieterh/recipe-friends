@@ -14,25 +14,27 @@ public class RecipeDetails
 
     [Required]
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public required Catagories Catagory { get; set; }        
+    public required Catagories Catagory { get; set; }
 
     [Required]
-    [StringLength(100, MinimumLength = 50)]
+    [StringLength(100, MinimumLength = 25)]
     public required string ShortDescription { get; set; }
 
     [Required]
-    [StringLength(4096, MinimumLength = 100)]
+    [StringLength(4096, MinimumLength = 1)]
     public required string Description { get; set; }
 
     [Required]
-    [StringLength(4096, MinimumLength = 100)]
+    [StringLength(4096, MinimumLength = 25)]
     public required string Directions { get; set; }
 
-    [Required]        
+    [Required]
     public required TimeOnly PreparationTime { get; set; }
 
     [Required]
     public required TimeOnly CookingTime { get; set; }
+
+    public virtual ICollection<IngredientDetails> Ingredients { get; set; } = new List<IngredientDetails>();
 
     public List<string> Tags { get; set; } = new List<string>();
 }
@@ -47,4 +49,15 @@ public enum Catagories
     Dessert = 60,
     Sauce = 70,
     Drink = 80
+}
+
+public enum Measurement
+{
+    Tablespoon = 10,
+    Teaspoon = 20,
+    Milliliter = 30,
+    Deciliter = 40,
+    Liter = 50,
+    Milligram = 60,
+    Gram = 70
 }

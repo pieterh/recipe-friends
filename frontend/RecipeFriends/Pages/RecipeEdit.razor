@@ -15,22 +15,34 @@ else
     <EditForm Model="recipeDetails" OnValidSubmit="HandleValidSubmit">
         <DataAnnotationsValidator />
         <ValidationSummary />
-
-        <InputText id="title" @bind-Value="recipeDetails.Title" />
-        <InputSelect id="catagory" TValue="Catagories" @bind-Value="recipeDetails.Catagory">
-            @foreach (var cat in Enum.GetValues<Catagories>())
-            {
-                <option value="@cat">@cat</option>
-            }
-        </InputSelect>
-        <InputText id="shortDescription" @bind-Value="recipeDetails.ShortDescription" />
-        <InputTextArea id="description" @bind-Value="recipeDetails.Description" />
-        <InputTextArea id="directions" @bind-Value="recipeDetails.Directions" />
-        @*<InputText id="preparationTime" @bind-Value="recipeDetails.PreparationTime" />
-        <InputText id="cookingTime" @bind-Value="recipeDetails.CookingTime" />*@
-        <!-- For Tags, you can use some other UI element like checkbox list, multi-select etc -->
-
-        <button type="submit">Update</button>
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <InputText id="title" @bind-Value="recipeDetails.Title" />
+            </div>
+            <div class="form-group col-md-12">
+                <InputSelect id="catagory" TValue="Catagories" @bind-Value="recipeDetails.Catagory">
+                    @foreach (var cat in Enum.GetValues<Catagories>())
+                    {
+                        <option value="@cat">@cat</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="form-group col-md-12">
+                <InputText id="shortDescription" @bind-Value="recipeDetails.ShortDescription" />
+            </div>
+            <div class="form-group col-md-12">
+                <InputTextArea id="description" @bind-Value="recipeDetails.Description" />
+            </div>
+            <div class="form-group col-md-12">
+                <InputTextArea id="directions" @bind-Value="recipeDetails.Directions" />
+            </div>
+            @*<InputText id="preparationTime" @bind-Value="recipeDetails.PreparationTime" />
+                <InputText id="cookingTime" @bind-Value="recipeDetails.CookingTime" />*@
+            <!-- For Tags, you can use some other UI element like checkbox list, multi-select etc -->
+            <div class="form-group col-md-12">
+                <button type="submit">Update</button>
+            </div>
+        </div>
     </EditForm>
 
     @if (!string.IsNullOrEmpty(saveStatusMessage))
