@@ -5,7 +5,7 @@
 			"type": "maui",
 			"targetFramework": "net7.0-maccatalyst",
 			"configuration": "Debug",
-			"project": "/Users/pieter/Documents/workspace/recipe-friends/mauiblazor/RecipeFriends/RecipeFriends/RecipeFriends.csproj",
+			"project": "/Users/pieter/Documents/workspace/recipe-friends/mauiblazor/RecipeFriends/RecipeFriends.csproj",
 			"problemMatcher": [
 				"$msCompile"
 			],

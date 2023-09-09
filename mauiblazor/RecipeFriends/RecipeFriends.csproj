@@ -80,7 +80,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\RecipeFriends.Data\RecipeFriends.Data.csproj" />
+      <ProjectReference Include="..\..\shared\RecipeFriends.DTO\RecipeFriends.DTO.csproj" />
+      <ProjectReference Include="..\..\shared\RecipeFriends.Data\RecipeFriends.Data.csproj" />
     </ItemGroup>
 
 </Project>

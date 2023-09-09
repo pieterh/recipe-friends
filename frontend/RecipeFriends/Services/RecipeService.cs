@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
-using RecipeFriends.Shared.DTO.v1;
+using RecipeFriends.Shared.DTO;
 
 namespace RecipeFriends.Services;
 

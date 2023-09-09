@@ -1,7 +1,7 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
 using RecipeFriends.Data;
-using RecipeFriends.Shared.DTO.v1;
+using RecipeFriends.Shared.DTO;
 
 namespace RecipeFriends.Services;
 

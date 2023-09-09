@@ -1,5 +1,5 @@
 ﻿@page "/recipe/edit/{Id:int}"
-@using RecipeFriends.Shared.DTO.v1
+@using RecipeFriends.Shared.DTO
 @using RecipeFriends.Data
 @using RecipeFriends.Services
 @inject IRecipeService RecipeService
@@ -29,8 +29,8 @@ else
                 Categorie
             </label>
             <div class="col-sm-10">
-                <InputSelect id="catagory" class="form-control" TValue="Data.Models.Catagories" @bind-Value="recipeDetails.Catagory">
-                    @foreach (var cat in Enum.GetValues<Data.Models.Catagories>())
+                <InputSelect id="catagory" class="form-control" TValue="Shared.Catagories" @bind-Value="recipeDetails.Catagory">
+                    @foreach (var cat in Enum.GetValues<Shared.Catagories>())
                     {
                         <option value="@cat">@cat</option>
                     }

@@ -1,4 +1,4 @@
-﻿namespace RecipeFriends.Shared.DTO.v1;
+﻿namespace RecipeFriends.Shared.DTO;
 
 public class TagInfo
 {

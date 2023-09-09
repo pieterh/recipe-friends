@@ -1,7 +1,7 @@
 ﻿@page "/recipe/list"
 
 @using RecipeFriends.Services
-@using RecipeFriends.Shared.DTO.v1
+@using RecipeFriends.Shared.DTO
 
 @inject NavigationManager NavigationManager
 @inject IRecipeService RecipeService
@@ -41,7 +41,7 @@ else
 }
 
 @code {
-    private RecipeFriends.Shared.DTO.v1.RecipeInfo[]? recipes;
+    private RecipeFriends.Shared.DTO.RecipeInfo[]? recipes;
 
     protected override async Task OnInitializedAsync()
     {

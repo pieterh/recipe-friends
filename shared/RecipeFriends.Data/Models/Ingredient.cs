@@ -1,6 +1,6 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using RecipeFriends.Shared;
 
 namespace RecipeFriends.Data.Models;
 
@@ -15,5 +15,3 @@ public class Ingredient
     public required Measurement Measurement { get; set; }
     public required int Order { get; set; }
 }
-
-

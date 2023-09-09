@@ -1,4 +1,4 @@
-namespace RecipeFriends.Data.Models;
+namespace RecipeFriends.Shared;
 
 public enum Catagories
 {

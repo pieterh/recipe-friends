@@ -5,7 +5,7 @@ VisualStudioVersion = 25.0.1706.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends", "RecipeFriends\RecipeFriends.csproj", "{4B502A7C-4BFA-45F6-9BD1-0748B9FD698B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends.Shared", "..\shared\RecipeFriends.Shared\RecipeFriends.Shared.csproj", "{810E3730-AAAC-4864-B2D2-B7A4C5695B6E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends.DTO", "..\shared\RecipeFriends.DTO\RecipeFriends.DTO.csproj", "{E2CFA271-8F1B-4777-9E6F-F36E4723FEAB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{4B502A7C-4BFA-45F6-9BD1-0748B9FD698B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B502A7C-4BFA-45F6-9BD1-0748B9FD698B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B502A7C-4BFA-45F6-9BD1-0748B9FD698B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{810E3730-AAAC-4864-B2D2-B7A4C5695B6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{810E3730-AAAC-4864-B2D2-B7A4C5695B6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{810E3730-AAAC-4864-B2D2-B7A4C5695B6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{810E3730-AAAC-4864-B2D2-B7A4C5695B6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2CFA271-8F1B-4777-9E6F-F36E4723FEAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2CFA271-8F1B-4777-9E6F-F36E4723FEAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2CFA271-8F1B-4777-9E6F-F36E4723FEAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2CFA271-8F1B-4777-9E6F-F36E4723FEAB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

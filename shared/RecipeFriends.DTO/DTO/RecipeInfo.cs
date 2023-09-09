@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace RecipeFriends.Shared.DTO.v1;
+namespace RecipeFriends.Shared.DTO;
 
 public class RecipeInfo
 {

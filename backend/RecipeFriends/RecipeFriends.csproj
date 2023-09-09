@@ -44,7 +44,7 @@
     <None Remove="Models\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\RecipeFriends.Shared\RecipeFriends.Shared.csproj">
+    <ProjectReference Include="..\..\shared\RecipeFriends.DTO\RecipeFriends.DTO.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
 using RecipeFriends.Data;
 using RecipeFriends.Models;
-using RecipeFriends.Shared.DTO.v1;
+using RecipeFriends.Shared.DTO;
 
 namespace RecipeFriends.Controllers
 {

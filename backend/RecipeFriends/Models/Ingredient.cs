@@ -1,7 +1,8 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using RecipeFriends.Shared.DTO.v1;
+using RecipeFriends.Shared;
+using RecipeFriends.Shared.DTO;
 
 namespace RecipeFriends.Models;
 
