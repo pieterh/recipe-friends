@@ -17,7 +17,7 @@ public class RecipeDetails
     public required Catagories Catagory { get; set; }
 
     [Required]
-    [StringLength(100, MinimumLength = 25)]
+    [StringLength(250, MinimumLength = 25)]
     public required string ShortDescription { get; set; }
 
     [Required]
