@@ -15,48 +15,15 @@ internal class MyFontResolver : IFontResolver
         private static readonly string[] SSupportedFonts;
 static MyFontResolver()
         {
-            string fontDir;
+            Console.WriteLine(Microsoft.Maui.Devices.DeviceInfo.Platform);
+            Console.WriteLine(FileSystem.AppDataDirectory);
+            Console.WriteLine(FileSystem.CacheDirectory);            
 
-            bool isOSX = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX);
-            isOSX = true;
-            if (isOSX)
-            {
-                fontDir = "/Library/Fonts/";
-                SSupportedFonts = System.IO.Directory.GetFiles(fontDir, "*.ttf", System.IO.SearchOption.AllDirectories);
-                SetupFontsFiles(SSupportedFonts);
-                return;
-            }
-
-            bool isLinux = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux);
-            if (isLinux)
-            {
-                SSupportedFonts = LinuxSystemFontResolver.Resolve();
-                SetupFontsFiles(SSupportedFonts);
-                return;
-            }
-
-            bool isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
-            if (isWindows)
-            {
-                fontDir = System.Environment.ExpandEnvironmentVariables(@"%SystemRoot%\Fonts");
-                var fontPaths = new List<string>();
-
-                var systemFontPaths = System.IO.Directory.GetFiles(fontDir, "*.ttf", System.IO.SearchOption.AllDirectories);
-                fontPaths.AddRange(systemFontPaths);
-
-                var appdataFontDir = System.Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\Microsoft\Windows\Fonts");
-                if(System.IO.Directory.Exists(appdataFontDir))
-                {
-                    var appdataFontPaths = System.IO.Directory.GetFiles(appdataFontDir, "*.ttf", System.IO.SearchOption.AllDirectories);
-                    fontPaths.AddRange(appdataFontPaths);
-                }
-
-                SSupportedFonts = fontPaths.ToArray();
-                SetupFontsFiles(SSupportedFonts);
-                return;
-            }
-
-            throw new System.NotImplementedException("FontResolver not implemented for this platform (PdfSharpCore.Utils.FontResolver.cs).");
+            SSupportedFonts = new string[] {
+                "Arial.ttf", "Arial Italic.ttf", "Arial Bold.ttf", "Arial Bold Italic.ttf", 
+                "Segoe UI.ttf", "Segoe UI Italic.ttf", "Segoe UI Bold.ttf", "Segoe UI Bold Italic.ttf",
+                "OpenSans-Regular.ttf"};
+            SetupFontsFiles(SSupportedFonts);
         }
         private readonly struct FontFileInfo
         {
@@ -88,21 +55,23 @@ static MyFontResolver()
                 }
             }
 
-            public static FontFileInfo Load(string path)
+            public static async Task<FontFileInfo> LoadAsync(string path)
             {
-                FontDescription fontDescription = FontDescription.LoadDescription(path);
+                using var t = await FileSystem.OpenAppPackageFileAsync(path);
+                
+                FontDescription fontDescription = FontDescription.LoadDescription(t);
                 return new FontFileInfo(path, fontDescription);
             }
         }
-public static void SetupFontsFiles(string[] sSupportedFonts)
+        public static void SetupFontsFiles(string[] sSupportedFonts)
         {
             List<FontFileInfo> tempFontInfoList = new List<FontFileInfo>();
             foreach (string fontPathFile in sSupportedFonts)
             {
                 try
                 {
-                    FontFileInfo fontInfo = FontFileInfo.Load(fontPathFile);
-                    //Debug.WriteLine(fontPathFile);
+                    FontFileInfo fontInfo = FontFileInfo.LoadAsync(fontPathFile).GetAwaiter().GetResult();
+                    Console.WriteLine(fontPathFile);
                     tempFontInfoList.Add(fontInfo);
                 }
                 catch (System.Exception e)
@@ -162,7 +131,8 @@ public static void SetupFontsFiles(string[] sSupportedFonts)
                         System.IO.Path.GetFileName(faceFileName).ToLower())
                     );
 
-                    using (System.IO.Stream ttf = System.IO.File.OpenRead(ttfPathFile))
+                    using (var ttf = FileSystem.OpenAppPackageFileAsync(ttfPathFile).Result)
+                    //using (System.IO.Stream ttf = System.IO.File.OpenRead(ttfPathFile))
                     {
                         ttf.CopyTo(ms);
                         ms.Position = 0;

@@ -11,7 +11,6 @@
 <PageTitle>Recipes</PageTitle>
 <script>
   window.downloadFileFromStream = async (fileName, contentStreamReference) => {
-    console.log("test")
     const arrayBuffer = await contentStreamReference.arrayBuffer();
     const blob = new Blob([arrayBuffer]);
     const url = URL.createObjectURL(blob);
@@ -64,7 +63,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        
         recipes = await RecipeService.GetRecipesAsync(CancellationToken.None);
     }
 
@@ -74,8 +72,10 @@ else
     }
     private async void DownloadRecipe(int id){
         var pdf = await DocumentService.RecipeToPDFAsync(id, CancellationToken.None);
-        using var stream = new MemoryStream(pdf);
-        using var streamRef = new DotNetStreamReference(stream: stream);
-        await JS.InvokeVoidAsync("downloadFileFromStream", "recipe.pdf", streamRef);
+
+        using FileStream outputStream = System.IO.File.OpenWrite("/users/pieter/Documents/Recipe.pdf");
+        using StreamWriter streamWriter = new StreamWriter(outputStream);
+
+        await streamWriter.BaseStream.WriteAsync(pdf);
     }
 }

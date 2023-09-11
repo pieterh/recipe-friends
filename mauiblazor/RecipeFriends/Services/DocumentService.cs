@@ -1,4 +1,5 @@
 ﻿
+using System.Text;
 using MarkdownPdf;
 using PdfSharpCore.Fonts;
 
@@ -20,7 +21,15 @@ public class DocumentService : IDocumentService
     {
         var recipe = await _recipeService.GetRecipeDetailsAsync(id, cancellationToken);
 
-        var markdown = recipe.Directions;
+        
+        var markdown = new StringBuilder();
+        markdown.Append("# " + recipe.Title + Environment.NewLine);
+        markdown.Append(Environment.NewLine);
+        markdown.Append(recipe.ShortDescription);
+        markdown.Append(Environment.NewLine);
+        markdown.Append(recipe.Description);
+        markdown.Append(Environment.NewLine);
+        markdown.Append(recipe.Directions);
 
         MarkdownPdfGenerator generator = new();
 
@@ -29,7 +38,7 @@ public class DocumentService : IDocumentService
         generator.TopMargin = Unit.FromInch(0.5);
         generator.BottomMargin = Unit.FromInch(0.5);       
 
-        generator.GeneratePdf(markdown);
+        generator.GeneratePdf(markdown.ToString());
 
         var b = Array.Empty<byte>();
 
