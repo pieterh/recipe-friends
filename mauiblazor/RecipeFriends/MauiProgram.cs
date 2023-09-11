@@ -44,15 +44,15 @@ public static class MauiProgram
 
         };
 
-
-
-		//var c = new RecipeFriendsContext();
-		//var s = new RecipeService(c);
-
 		builder.Services.AddSingleton<RecipeFriendsContext>();
 		builder.Services.AddSingleton<IRecipeService, RecipeService > ();
+		builder.Services.AddSingleton<IDocumentService, DocumentService > ();
 		builder.Services.AddSingleton<WeatherForecastService>();
 
+		bool isOSX = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX);
+
+		Console.WriteLine(System.Runtime.InteropServices.RuntimeInformation.OSDescription);
+		Console.WriteLine(System.Runtime.InteropServices.RuntimeInformation.OSArchitecture);
 
 
 		var app = builder.Build();

@@ -1,15 +1,20 @@
 ﻿.shortDescription-textarea {
-    height: 100px;
+    height: 150px;
 }
 
 .description-textarea {
-    height: 200px;
+    height: 250px;
 }
 
 .directions-textarea {
-    height: 200px;
+    height: 250px;
 }
 
 .custom-row-spacing {
-    margin-bottom: 20px;
+    margin-bottom: 20px !important;
 }
+
+.markdown-editor-wrapper {
+    margin-bottom: 50px;  
+}
+

@@ -5,9 +5,24 @@
 
 @inject NavigationManager NavigationManager
 @inject IRecipeService RecipeService
-
+@inject IDocumentService DocumentService
+@inject IJSRuntime JS
 
 <PageTitle>Recipes</PageTitle>
+<script>
+  window.downloadFileFromStream = async (fileName, contentStreamReference) => {
+    console.log("test")
+    const arrayBuffer = await contentStreamReference.arrayBuffer();
+    const blob = new Blob([arrayBuffer]);
+    const url = URL.createObjectURL(blob);
+    const anchorElement = document.createElement('a');
+    anchorElement.href = url;
+    anchorElement.download = fileName ?? '';
+    anchorElement.click();
+    anchorElement.remove();
+    URL.revokeObjectURL(url);
+  }
+</script>
 
 <h1>Recipes</h1>
 
@@ -22,7 +37,8 @@ else
             <tr>
                 <th>Title</th>
                 <th>Catagory</th>
-                <th>Action</th>
+                <th>Action1</th>
+                <th>Action2</th>
             </tr>
         </thead>
         <tbody>
@@ -32,7 +48,10 @@ else
                     <td>@recipe.Title</td>
                     <td>@recipe.Catagory</td>
                     <td>
-                        <button @onclick="() => GoToEditPage(recipe.Id)">Edit</button>  
+                        <button @onclick="() => GoToEditPage(recipe.Id)">Edit</button>                          
+                    </td>
+                    <td>                        
+                        <button @onclick="() => DownloadRecipe(recipe.Id)">Download</button>  
                     </td>
                 </tr>
             }
@@ -52,5 +71,11 @@ else
     private void GoToEditPage(int id)
     {
         NavigationManager.NavigateTo($"/recipe/edit/{id}");  
+    }
+    private async void DownloadRecipe(int id){
+        var pdf = await DocumentService.RecipeToPDFAsync(id, CancellationToken.None);
+        using var stream = new MemoryStream(pdf);
+        using var streamRef = new DotNetStreamReference(stream: stream);
+        await JS.InvokeVoidAsync("downloadFileFromStream", "recipe.pdf", streamRef);
     }
 }

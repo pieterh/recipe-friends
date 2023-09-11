@@ -7,11 +7,12 @@ namespace RecipeFriends.Services;
 
 public class RecipeService : IRecipeService
 {
-            private readonly RecipeFriendsContext _context;
-                    public RecipeService(RecipeFriendsContext context)
-        {
-            _context = context;
-        }
+    private readonly RecipeFriendsContext _context;
+    
+    public RecipeService(RecipeFriendsContext context)
+    {
+        _context = context;
+    }
         
     public async Task<RecipeDetails> GetRecipeDetailsAsync(int id, CancellationToken cancellationToken)
     {
