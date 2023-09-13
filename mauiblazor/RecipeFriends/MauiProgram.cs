@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SQLite;
+using Blazored.Modal;
 
 using RecipeFriends.Data;
 using RecipeFriends.Services;
@@ -43,6 +44,8 @@ public static class MauiProgram
            // Console.WriteLine($"{args.Exception.ToString()}");
 
         };
+
+		builder.Services.AddBlazoredModal();
 
 		builder.Services.AddSingleton<RecipeFriendsContext>();
 		builder.Services.AddSingleton<IRecipeService, RecipeService > ();

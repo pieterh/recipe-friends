@@ -95,10 +95,13 @@ else
     private RecipeDetails? recipeDetails;
 
     private string saveStatusMessage = string.Empty;
+    private string directionsHtml;
 
     protected override async Task OnInitializedAsync()
     {
         recipeDetails = await RecipeService.GetRecipeDetailsAsync(Id, CancellationToken.None);
+        var p = new Shared.Markdown.MarkdownProcessor();
+        p.ToHtml(recipeDetails.Directions, out directionsHtml);
     }
 
         @* string markdownValue = "#Markdown Editor\nThis is a test";

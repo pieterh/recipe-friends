@@ -1,0 +1,33 @@
+@page "/recipe/view/{Id:int}"
+@using RecipeFriends.Shared.DTO
+@using RecipeFriends.Data
+@using RecipeFriends.Services
+@inject IRecipeService RecipeService
+@inject IDocumentService DocumentService
+@inject NavigationManager NavigationManager
+
+@if (string.IsNullOrEmpty(recipeHtml))
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    @((MarkupString)recipeHtml)
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private string recipeHtml = "dfg";
+
+    protected override async Task OnInitializedAsync()
+    {
+        recipeHtml = await DocumentService.RecipeToHtmlAsync(Id, CancellationToken.None).ConfigureAwait(true);
+        Console.WriteLine("test");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/recipe/list");
+    }
+}

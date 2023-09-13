@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends.DTO", "..\sha
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends.Data", "..\shared\RecipeFriends.Data\RecipeFriends.Data.csproj", "{32DC89AB-34BC-4D7D-BEEC-F3EBCC918540}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends.Shared.Markdown", "..\shared\RecipeFriends.Shared.Markdown\RecipeFriends.Shared.Markdown.csproj", "{CA4D09BC-4F1F-4F22-A494-3CAFA788174E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{32DC89AB-34BC-4D7D-BEEC-F3EBCC918540}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32DC89AB-34BC-4D7D-BEEC-F3EBCC918540}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{32DC89AB-34BC-4D7D-BEEC-F3EBCC918540}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA4D09BC-4F1F-4F22-A494-3CAFA788174E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA4D09BC-4F1F-4F22-A494-3CAFA788174E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA4D09BC-4F1F-4F22-A494-3CAFA788174E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA4D09BC-4F1F-4F22-A494-3CAFA788174E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

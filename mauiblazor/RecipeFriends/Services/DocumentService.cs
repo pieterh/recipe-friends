@@ -4,6 +4,7 @@ using MarkdownPdf;
 using PdfSharpCore.Fonts;
 
 using RecipeFriends.Services;
+using RecipeFriends.Shared.Markdown;
 
 namespace RecipeFriends;
 
@@ -15,6 +16,28 @@ public class DocumentService : IDocumentService
         _recipeService = recipeService;
 
         		GlobalFontSettings.FontResolver = new MyFontResolver();
+    }
+
+    public async Task<string> RecipeToMarkdownAsync(int id, CancellationToken cancellationToken)
+    {
+        var recipe = await _recipeService.GetRecipeDetailsAsync(id, cancellationToken);
+        var recipeMarkdown = new StringBuilder();
+        recipeMarkdown.AppendLine("# " + recipe.Title);
+        recipeMarkdown.AppendLine();
+        recipeMarkdown.AppendLine(recipe.ShortDescription);
+        recipeMarkdown.AppendLine("***");
+        recipeMarkdown.AppendLine(recipe.Description);
+        recipeMarkdown.AppendLine("***");
+        recipeMarkdown.AppendLine(recipe.Directions);
+        return recipeMarkdown.ToString();
+    }
+
+    public async Task<string> RecipeToHtmlAsync(int id, CancellationToken cancellationToken)
+    {
+        var recipeMarkdown = await RecipeToMarkdownAsync(id, cancellationToken);       
+        var p = new MarkdownProcessor();
+        p.ToHtml(recipeMarkdown, out var recipeHtml);
+        return recipeHtml;
     }
 
     public async Task<byte[]> RecipeToPDFAsync(int id, CancellationToken cancellationToken)
