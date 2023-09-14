@@ -6,24 +6,36 @@
 @inject IDocumentService DocumentService
 @inject NavigationManager NavigationManager
 
-@if (string.IsNullOrEmpty(recipeHtml))
+<MudDialog>
+    <DialogContent >
+
+@if (string.IsNullOrEmpty(recipeMarkDown))
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    @((MarkupString)recipeHtml)
+    <MudMarkdown Value="@recipeMarkDown" />
 }
+</DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Close">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
 
 @code {
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     [Parameter] public int Id { get; set; }
 
-    private string recipeHtml = "dfg";
+    void Close() => MudDialog.Close(DialogResult.Ok(true));
+
+    private string recipeMarkDown = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        recipeHtml = await DocumentService.RecipeToHtmlAsync(Id, CancellationToken.None).ConfigureAwait(true);
-        Console.WriteLine("test");
+        recipeMarkDown = await DocumentService.RecipeToMarkdownAsync(Id, CancellationToken.None).ConfigureAwait(true);
+        Console.WriteLine(recipeMarkDown);
     }
 
     private void Cancel()

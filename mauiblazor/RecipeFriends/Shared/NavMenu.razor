@@ -1,4 +1,13 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿
+<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All">Dashboard</MudNavLink>
+    <MudNavLink Href="/counter" Match="NavLinkMatch.Prefix">Counter</MudNavLink>
+    <MudNavLink Href="/fetchdata" Match="NavLinkMatch.Prefix">Weather</MudNavLink>
+    <MudNavLink Href="/recipe/list" Match="NavLinkMatch.Prefix">Recipes</MudNavLink>
+</MudNavMenu>
+
+@* 
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">RecipeFriends</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
@@ -42,4 +51,4 @@
         collapseNavMenu = !collapseNavMenu;
     }
 }
-
+ *@

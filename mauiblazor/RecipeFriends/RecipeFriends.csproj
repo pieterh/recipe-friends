@@ -47,10 +47,10 @@
 
         <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
-    </ItemGroup> 
+    </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Blazored.Modal" Version="7.1.0" />
+        <PackageReference Include="CommunityToolkit.Maui" Version="5.3.0" />
         <PackageReference Include="MarkdownPdf" Version="1.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Components" Version="7.0.10" />
 
@@ -63,6 +63,8 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.10" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
+        <PackageReference Include="MudBlazor" Version="6.9.0" />
+        <PackageReference Include="MudBlazor.Markdown" Version="0.1.2" />
         <PackageReference Include="NLog" Version="5.2.4" />
         <PackageReference Include="PSC.Blazor.Components.MarkdownEditor" Version="2.0.11" />
         <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
@@ -73,4 +75,15 @@
         <ProjectReference Include="..\..\shared\RecipeFriends.Data\RecipeFriends.Data.csproj" />
         <ProjectReference Include="..\..\shared\RecipeFriends.Shared.Markdown\RecipeFriends.Shared.Markdown.csproj" />
     </ItemGroup>
+
+    <!-- Build Properties must be defined within these property groups to ensure successful publishing
+        to the Mac App Store. See: https://aka.ms/maui-publish-app-store#define-build-properties-in-your-project-file -->
+    <PropertyGroup Condition="$(TargetFramework.Contains('-maccatalyst')) and '$(Configuration)' == 'Debug'">
+        <CodesignEntitlements>Platforms/MacCatalyst/Entitlements.Debug.plist</CodesignEntitlements>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$(TargetFramework.Contains('-maccatalyst')) and '$(Configuration)' == 'Release'">
+        <CodesignEntitlements>Platforms/MacCatalyst/Entitlements.Release.plist</CodesignEntitlements>
+        <UseHardenedRuntime>true</UseHardenedRuntime>
+    </PropertyGroup>
 </Project>

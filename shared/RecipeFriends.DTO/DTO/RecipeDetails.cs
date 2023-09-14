@@ -5,7 +5,7 @@ namespace RecipeFriends.Shared.DTO;
 
 public class RecipeDetails
 {
-    [Range(1, Double.MaxValue)]
+    [Range(-1, Double.MaxValue)]
     public int Id { get; set; }
 
     [Required]

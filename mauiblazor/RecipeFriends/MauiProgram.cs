@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SQLite;
-using Blazored.Modal;
+using MudBlazor.Services;
 
 using RecipeFriends.Data;
 using RecipeFriends.Services;
+using MudBlazor;
+using CommunityToolkit.Maui;
 
 
 
@@ -12,13 +14,12 @@ namespace RecipeFriends;
 
 public static class MauiProgram
 {
-	private static SQLiteAsyncConnection _dbConnection;
-
 	public static MauiApp CreateMauiApp()
 	{
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
+			.UseMauiCommunityToolkit()
 			.ConfigureFonts(fonts =>
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -30,8 +31,6 @@ public static class MauiProgram
 		builder.Services.AddBlazorWebViewDeveloperTools();
 		builder.Logging.AddDebug();
 #endif
-		//builder.Services.AddDbContext<RecipeFriendsContext>(options => options.UseSqlite($"Data Source={RecipeFriendsContext.DbPath}"));
-
         AppDomain.CurrentDomain.UnhandledException += (sender, args) => 
         {
 			Console.WriteLine("sadfas");
@@ -45,8 +44,9 @@ public static class MauiProgram
 
         };
 
-		builder.Services.AddBlazoredModal();
-
+		builder.Services.AddMudServices();
+		builder.Services.AddMudMarkdownServices();
+		
 		builder.Services.AddSingleton<RecipeFriendsContext>();
 		builder.Services.AddSingleton<IRecipeService, RecipeService > ();
 		builder.Services.AddSingleton<IDocumentService, DocumentService > ();

@@ -3,27 +3,13 @@
 @using RecipeFriends.Services
 @using RecipeFriends.Shared.DTO
 
-
 @inject NavigationManager NavigationManager
+@inject IDialogService DialogService
 @inject IRecipeService RecipeService
 @inject IDocumentService DocumentService
 @inject IJSRuntime JS
 
 <PageTitle>Recipes</PageTitle>
-<script>
-  window.downloadFileFromStream = async (fileName, contentStreamReference) => {
-    const arrayBuffer = await contentStreamReference.arrayBuffer();
-    const blob = new Blob([arrayBuffer]);
-    const url = URL.createObjectURL(blob);
-    const anchorElement = document.createElement('a');
-    anchorElement.href = url;
-    anchorElement.download = fileName ?? '';
-    anchorElement.click();
-    anchorElement.remove();
-    URL.revokeObjectURL(url);
-  }
-</script>
-
 <h1>Recipes</h1>
 
 @if (recipes == null)
@@ -32,67 +18,97 @@
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Catagory</th>
-                <th>Action1</th>
-                <th>Action2</th>
-                <th>Action3</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var recipe in recipes)
-            {
-                <tr>
-                    <td>@recipe.Title</td>
-                    <td>@recipe.Catagory</td>
-                    <td>
-                        <button @onclick="() => GoToEditPage(recipe.Id)">Edit</button>                          
-                    </td>
-                    <td>                        
-                        <button @onclick="() => ViewRecipe(recipe.Id)">View</button>  
-                    </td>
-                    <td>                        
-                        <button @onclick="() => DownloadRecipe(recipe.Id)">Download</button>  
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <MudDataGrid T="RecipeInfo" Items="@recipes" QuickFilter="@_quickFilter">
+        <ToolBarContent>
+            <MudButton OnClick="() => NewRecipe()" Color="@Color.Success" Class="add-item-btn">Add Item</MudButton>
+            <MudButton Color="@Color.Error" Class="remove-item-btn">Remove Item</MudButton>                        
+            <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.Title" Title="Title" />
+            <PropertyColumn Property="x => x.Catagory" Title="Catagory"/>
+            <TemplateColumn CellClass="d-flex justify-end">
+            <CellTemplate>
+                <MudStack Row>
+                    <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="() => ViewRecipe(context.Item.Id)">View</MudButton>
+                    <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="() => GoToEditPage(context.Item.Id)">Edit</MudButton>
+                    <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="() => DownloadRecipe(context.Item.Id)">Download</MudButton>                    
+                </MudStack>
+            </CellTemplate>
+        </TemplateColumn>
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="RecipeInfo" />
+        </PagerContent>
+    </MudDataGrid>
 }
 
 @code {
-    [CascadingParameter] public IModalService Modal { get; set; } = default!;
     private RecipeFriends.Shared.DTO.RecipeInfo[]? recipes;
+    private string searchString = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         recipes = await RecipeService.GetRecipesAsync(CancellationToken.None);
     }
 
+    private Func<RecipeInfo, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        if (x.Title.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.ShortDescription.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    };
+
+    private void NewRecipe()
+    { 
+        var parameters = new DialogParameters<RecipeView>();
+        parameters.Add(x => x.Id, -1);
+
+        var options = new DialogOptions { FullScreen = true,  CloseOnEscapeKey = true };
+        DialogService.Show<RecipeEdit>("", parameters, options);
+    }
+
     private void GoToEditPage(int id)
     {
-        NavigationManager.NavigateTo($"/recipe/edit/{id}");  
+        @* NavigationManager.NavigateTo($"/recipe/edit/{id}");   *@
+        var parameters = new DialogParameters<RecipeView>();
+        parameters.Add(x => x.Id, id);
+
+        var options = new DialogOptions { FullScreen = true,  CloseOnEscapeKey = true };
+        DialogService.Show<RecipeEdit>("", parameters, options);        
     }
 
     private void ViewRecipe(int id)
     { 
-        var recipe = recipes.Where<RecipeInfo>(x => x.Id == id).First<RecipeInfo>();
-        var parameters = new ModalParameters().Add(nameof(RecipeView.Id), recipe.Id);        
-        var options = new ModalOptions() { 
-                                Size = ModalSize.Large 
-                            };
-        Modal.Show<RecipeView>("", parameters, options);
+        //var recipe = recipes.Where<RecipeInfo>(x => x.Id == id).First<RecipeInfo>();
+
+        var parameters = new DialogParameters<RecipeView>();
+        parameters.Add(x => x.Id, id);
+
+        var options = new DialogOptions { FullScreen = true,  CloseOnEscapeKey = true };
+        DialogService.Show<RecipeView>("", parameters, options);
     }
 
-    private async void DownloadRecipe(int id){
-        var pdf = await DocumentService.RecipeToPDFAsync(id, CancellationToken.None);
-
-        using FileStream outputStream = System.IO.File.OpenWrite("/users/pieter/Documents/Recipe.pdf");
-        using StreamWriter streamWriter = new StreamWriter(outputStream);
-
-        await streamWriter.BaseStream.WriteAsync(pdf);
+    private async void DownloadRecipe(int id)   {
+        try{
+            var result = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(CancellationToken.None);
+            var pdf = await DocumentService.RecipeToPDFAsync(id, CancellationToken.None);
+            if (result.IsSuccessful)
+            {               
+                using FileStream outputStream = System.IO.File.OpenWrite($"{result.Folder.Path}{Path.DirectorySeparatorChar}Recipe.pdf");
+                using StreamWriter streamWriter = new StreamWriter(outputStream);
+                await streamWriter.BaseStream.WriteAsync(pdf);        
+            }
+        }catch(Exception ex){
+            Console.WriteLine(ex.Message);
+        }
     }
 }

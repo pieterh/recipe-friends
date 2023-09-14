@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
 using RecipeFriends.Data;
+using RecipeFriends.Data.Models;
 using RecipeFriends.Shared.DTO;
 
 namespace RecipeFriends.Services;
@@ -33,12 +34,8 @@ public class RecipeService : IRecipeService
     }
 
     public async Task<bool> SaveRecipeDetailsAsync(RecipeDetails recipeDTO, CancellationToken cancellationToken)
-    {
-        //    if (id != recipeDTO.Id)
-        //     {
-        //         return BadRequest("Id mismatch");
-        //     }
-
+    {     
+        if (recipeDTO.Id > 0) {
             var existingRecipe = await _context.Recipes.Include(r => r.Tags).FirstOrDefaultAsync(r => r.Id == recipeDTO.Id);
 
             if (existingRecipe == null)
@@ -58,8 +55,8 @@ public class RecipeService : IRecipeService
             // Handle tags
             // Identify tags that are no longer associated
             var tagsToRemove = existingRecipe.Tags
-                                             .Where(rt => !recipeDTO.Tags.Any(t => t == rt.Name))
-                                             .ToList();
+                                                .Where(rt => !recipeDTO.Tags.Any(t => t == rt.Name))
+                                                .ToList();
 
             foreach (var tagToRemove in tagsToRemove)
             {
@@ -81,26 +78,39 @@ public class RecipeService : IRecipeService
                     existingRecipe.Tags.Add(tagRecipe);
                 }
             }
+        }
+        else{
+            var newRecipe = new Recipe(){
+                Title = recipeDTO.Title,
+                Catagory = recipeDTO.Catagory,
+                ShortDescription = recipeDTO.ShortDescription,
+                Description = recipeDTO.Description,
+                Directions = recipeDTO.Directions,
+                PreparationTime = recipeDTO.PreparationTime,
+                CookingTime = recipeDTO.CookingTime
+            };
+            _context.Add(newRecipe);
+        }
 
-            // Save changes
-            try
+        // Save changes
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // This checks if the resource still exists in the database.
+            if (!_context.Recipes.Any(e => e.Id == recipeDTO.Id))
             {
-                await _context.SaveChangesAsync();
+                return false;
             }
-            catch (DbUpdateConcurrencyException)
+            else
             {
-                // This checks if the resource still exists in the database.
-                if (!_context.Recipes.Any(e => e.Id == recipeDTO.Id))
-                {
-                    return false;
-                }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
+        }
 
-            return true;
+        return true;
     }
 
            private Data.Models.Recipe ToRecipe(RecipeDetails recipeDTO)

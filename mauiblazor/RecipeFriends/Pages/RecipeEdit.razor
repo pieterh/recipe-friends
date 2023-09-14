@@ -2,16 +2,20 @@
 @using RecipeFriends.Shared.DTO
 @using RecipeFriends.Data
 @using RecipeFriends.Services
+
 @inject IRecipeService RecipeService
 @inject NavigationManager NavigationManager
 
-@if (recipeDetails == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <EditForm Model="recipeDetails" OnValidSubmit="HandleValidSubmit">
+<MudDialog>
+    <DialogContent >
+        
+    @if (recipeDetails == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <EditForm Model="@recipeDetails" OnValidSubmit="HandleValidSubmit">
         <h3>Edit Recipe</h3>
         <DataAnnotationsValidator />
         <ValidationSummary />
@@ -67,27 +71,25 @@ else
                 <MarkdownEditor @bind-Value="@recipeDetails.Directions" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })'/>
             </div>
         </div>
+   
 
-        @*<InputText id="preparationTime" @bind-Value="recipeDetails.PreparationTime" />
-            <InputText id="cookingTime" @bind-Value="recipeDetails.CookingTime" />*@
-        <!-- For Tags, you can use some other UI element like checkbox list, multi-select etc -->
-        <div class="form-group row">
-            <div class="col-sm-12">
-                <button type="submit" class="btn btn-primary">Update</button>
-                <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+        @if (!string.IsNullOrEmpty(saveStatusMessage))
+        {
+            <div class="alert alert-info">
+                @saveStatusMessage
             </div>
-            
-        </div>
-
-    </EditForm>
-
-    @if (!string.IsNullOrEmpty(saveStatusMessage))
-    {
-        <div class="alert alert-info">
-            @saveStatusMessage
-        </div>
+        }
+        </EditForm>
     }
-}
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Color="Color.Secondary" OnClick="() => HandleValidSubmit()">Update</MudButton>
+        <MudButton Color="Color.Primary" OnClick="() => Cancel()">Cancel</MudButton>
+    </DialogActions>
+    
+</MudDialog>
+
 
 @code {
     [Parameter] public int Id { get; set; }
@@ -95,13 +97,14 @@ else
     private RecipeDetails? recipeDetails;
 
     private string saveStatusMessage = string.Empty;
-    private string directionsHtml;
 
     protected override async Task OnInitializedAsync()
     {
-        recipeDetails = await RecipeService.GetRecipeDetailsAsync(Id, CancellationToken.None);
-        var p = new Shared.Markdown.MarkdownProcessor();
-        p.ToHtml(recipeDetails.Directions, out directionsHtml);
+        if (Id > 0) {
+            recipeDetails = await RecipeService.GetRecipeDetailsAsync(Id, CancellationToken.None);
+        }else{
+            recipeDetails = new(){Title ="", ShortDescription ="", Description = "", Directions = "", Catagory = Catagories.MainCourse, PreparationTime = TimeOnly.MinValue, CookingTime = TimeOnly.MinValue };
+        }
     }
 
         @* string markdownValue = "#Markdown Editor\nThis is a test";
