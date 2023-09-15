@@ -41,7 +41,6 @@ public static class MauiProgram
             Console.WriteLine($"{args.Exception.Message}");
             Console.WriteLine($"==");
            // Console.WriteLine($"{args.Exception.ToString()}");
-
         };
 
 		builder.Services.AddMudServices();
@@ -73,7 +72,7 @@ public static class MauiProgram
 				// Log the exception or terminate the application based on your needs
 			}
 		}
-return app;
+		return app;
 	}
 }
 

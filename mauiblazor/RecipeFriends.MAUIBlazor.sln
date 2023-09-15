@@ -1,15 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 25.0.1706.3
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34112.27
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends", "RecipeFriends\RecipeFriends.csproj", "{2E532081-0F2A-4B31-BDD9-28A08E7F2A34}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RecipeFriends", "RecipeFriends\RecipeFriends.csproj", "{2E532081-0F2A-4B31-BDD9-28A08E7F2A34}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends.DTO", "..\shared\RecipeFriends.DTO\RecipeFriends.DTO.csproj", "{C9EB471F-9D4A-48D6-B6CB-0763B938C9E5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RecipeFriends.DTO", "..\shared\RecipeFriends.DTO\RecipeFriends.DTO.csproj", "{C9EB471F-9D4A-48D6-B6CB-0763B938C9E5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends.Data", "..\shared\RecipeFriends.Data\RecipeFriends.Data.csproj", "{32DC89AB-34BC-4D7D-BEEC-F3EBCC918540}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RecipeFriends.Data", "..\shared\RecipeFriends.Data\RecipeFriends.Data.csproj", "{32DC89AB-34BC-4D7D-BEEC-F3EBCC918540}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeFriends.Shared.Markdown", "..\shared\RecipeFriends.Shared.Markdown\RecipeFriends.Shared.Markdown.csproj", "{CA4D09BC-4F1F-4F22-A494-3CAFA788174E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RecipeFriends.Shared.Markdown", "..\shared\RecipeFriends.Shared.Markdown\RecipeFriends.Shared.Markdown.csproj", "{CA4D09BC-4F1F-4F22-A494-3CAFA788174E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,6 +19,7 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{2E532081-0F2A-4B31-BDD9-28A08E7F2A34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2E532081-0F2A-4B31-BDD9-28A08E7F2A34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E532081-0F2A-4B31-BDD9-28A08E7F2A34}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{2E532081-0F2A-4B31-BDD9-28A08E7F2A34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E532081-0F2A-4B31-BDD9-28A08E7F2A34}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C9EB471F-9D4A-48D6-B6CB-0763B938C9E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU

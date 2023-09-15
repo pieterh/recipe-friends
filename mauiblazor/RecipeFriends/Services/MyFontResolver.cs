@@ -13,7 +13,8 @@ internal class MyFontResolver : IFontResolver
         private static readonly Dictionary<string, FontFamilyModel> InstalledFonts = new Dictionary<string, FontFamilyModel>();
 
         private static readonly string[] SSupportedFonts;
-static MyFontResolver()
+
+        static MyFontResolver()
         {
             Console.WriteLine(Microsoft.Maui.Devices.DeviceInfo.Platform);
             Console.WriteLine(FileSystem.AppDataDirectory);
@@ -57,9 +58,16 @@ static MyFontResolver()
 
             public static async Task<FontFileInfo> LoadAsync(string path)
             {
-                using var t = await FileSystem.OpenAppPackageFileAsync(path);
-                
-                FontDescription fontDescription = FontDescription.LoadDescription(t);
+#if WINDOWS
+            // it seems to crash (wait for ever) on windows. With the synchronous call and GetAwaiter it seems to work...
+            // fake the await so that it will keep the compiler happy ;-)
+            using var t = FileSystem.OpenAppPackageFileAsync(path).GetAwaiter().GetResult();
+            //await Task.Delay(1);
+#else
+            using var t = await FileSystem.OpenAppPackageFileAsync(path);
+#endif
+
+            FontDescription fontDescription = FontDescription.LoadDescription(t);
                 return new FontFileInfo(path, fontDescription);
             }
         }

@@ -20,6 +20,16 @@
 				"$msCompile"
 			],
 			"label": "maui: Build"
+		},
+		{
+			"type": "maui",
+			"targetFramework": "net8.0-windows10.0.19041.0",
+			"configuration": "Debug",
+			"project": "c:\\Repos\\github\\recipe-friends\\mauiblazor\\RecipeFriends\\RecipeFriends.csproj",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"label": "maui: Build"
 		}
 	]
 }
