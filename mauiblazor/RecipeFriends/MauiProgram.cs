@@ -7,6 +7,7 @@ using RecipeFriends.Data;
 using RecipeFriends.Services;
 using MudBlazor;
 using CommunityToolkit.Maui;
+using RecipeFriends.Components.Layout;
 
 
 
@@ -16,6 +17,12 @@ public static class MauiProgram
 {
 	public static MauiApp CreateMauiApp()
 	{
+		var t = new MainLayout();
+		Console.WriteLine("OS Version: {0}", Environment.OSVersion.ToString());
+
+		Console.WriteLine("Version: {0}", Environment.Version.ToString());
+
+
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
