@@ -36,6 +36,6 @@ public class RecipeDetails
 
     public virtual ICollection<IngredientDetails> Ingredients { get; set; } = new List<IngredientDetails>();
 
-    public List<string> Tags { get; set; } = new List<string>();
+    public List<TagInfo> Tags { get; set; } = new List<TagInfo>();
 }
 

@@ -22,7 +22,6 @@ public static class MauiProgram
 
 		Console.WriteLine("Version: {0}", Environment.Version.ToString());
 
-
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
@@ -52,7 +51,8 @@ public static class MauiProgram
 
 		builder.Services.AddMudServices();
 		builder.Services.AddMudMarkdownServices();
-		
+	
+
 		builder.Services.AddSingleton<RecipeFriendsContext>();
 		builder.Services.AddSingleton<IRecipeService, RecipeService > ();
 		builder.Services.AddSingleton<IDocumentService, DocumentService > ();

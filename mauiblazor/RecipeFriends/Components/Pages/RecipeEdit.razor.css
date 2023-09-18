@@ -18,3 +18,6 @@
     margin-bottom: 50px;  
 }
 
+.EasyMDEContainer .CodeMirror .CodeMirror-scroll {
+    min-height: 150px !important;
+}

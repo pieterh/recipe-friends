@@ -1,0 +1,13 @@
+﻿<ul>
+    @foreach (var tag in RecipeTags)
+    {
+        <li>@tag.Name</li>
+    }
+</ul>
+
+@code {
+    [Parameter]
+    public List<TagInfo> RecipeTags { get; set; } = new List<TagInfo>();
+}
+
+

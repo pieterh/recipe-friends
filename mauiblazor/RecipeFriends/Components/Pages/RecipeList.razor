@@ -32,7 +32,7 @@ else
             <CellTemplate>
                 <MudStack Row>
                     <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="() => ViewRecipe(context.Item.Id)">View</MudButton>
-                    <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="() => GoToEditPage(context.Item.Id)">Edit</MudButton>
+                    <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="async () => await GoToEditPage(context.Item.Id)">Edit</MudButton>
                     <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="() => DownloadRecipe(context.Item.Id)">Download</MudButton>                    
                 </MudStack>
             </CellTemplate>
@@ -50,7 +50,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        recipes = await RecipeService.GetRecipesAsync(CancellationToken.None);
+        await RefreshRecipes();
     }
 
     private Func<RecipeInfo, bool> _quickFilter => x =>
@@ -67,23 +67,27 @@ else
         return false;
     };
 
-    private void NewRecipe()
+    private async Task NewRecipe()
     { 
         var parameters = new DialogParameters<RecipeView>();
         parameters.Add(x => x.Id, -1);
 
-        var options = new DialogOptions { FullScreen = true,  CloseOnEscapeKey = true };
-        DialogService.Show<RecipeEdit>("", parameters, options);
+        var options = new DialogOptions {  MaxWidth = MaxWidth.Medium, FullWidth = true, DisableBackdropClick = true, CloseOnEscapeKey = true };
+        var dialog = DialogService.Show<RecipeEdit>("", parameters, options);
+        await dialog.Result;  
+        await RefreshRecipes();            
     }
 
-    private void GoToEditPage(int id)
+    private async Task GoToEditPage(int id)
     {
         @* NavigationManager.NavigateTo($"/recipe/edit/{id}");   *@
         var parameters = new DialogParameters<RecipeView>();
         parameters.Add(x => x.Id, id);
 
-        var options = new DialogOptions { FullScreen = true,  CloseOnEscapeKey = true };
-        DialogService.Show<RecipeEdit>("", parameters, options);        
+        var options = new DialogOptions {  MaxWidth = MaxWidth.Medium, FullWidth = true, DisableBackdropClick = true, CloseOnEscapeKey = true };
+        var dialog = DialogService.Show<RecipeEdit>("", parameters, options);       
+        var r = await dialog.Result;    
+        await RefreshRecipes(); 
     }
 
     private void ViewRecipe(int id)
@@ -94,7 +98,7 @@ else
         parameters.Add(x => x.Id, id);
 
         var options = new DialogOptions { FullScreen = true,  CloseOnEscapeKey = true };
-        DialogService.Show<RecipeView>("", parameters, options);
+        DialogService.Show<RecipeView>("", parameters, options);        
     }
 
     private async void DownloadRecipe(int id)   {
@@ -110,5 +114,9 @@ else
         }catch(Exception ex){
             Console.WriteLine(ex.Message);
         }
+    }
+
+    private async Task RefreshRecipes(){
+        recipes = await RecipeService.GetRecipesAsync(CancellationToken.None);
     }
 }

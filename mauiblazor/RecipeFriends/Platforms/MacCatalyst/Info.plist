@@ -4,8 +4,16 @@
 <dict>
     <key>UIDeviceFamily</key>
     <array>
+        <!-- Targets iPhone -->
         <integer>1</integer>
+        <!-- Targets iPad -->
         <integer>2</integer>
+        <!-- Targets macOS -->
+        <!-- This target added because of default zoom of 77% doesn't seem to be right. -->
+        <!-- However MAUI was initially not targeted for macOs, issues could arrize -->
+        <!-- https://github.com/dotnet/maui/issues/10622 -->
+        <!-- https://learn.microsoft.com/en-us/dotnet/maui/mac-catalyst/user-interface-idiom -->
+        <integer>6</integer>
     </array>
     <key>UIRequiredDeviceCapabilities</key>
     <array>

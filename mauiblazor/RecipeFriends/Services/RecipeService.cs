@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Components.RenderTree;
 using Microsoft.EntityFrameworkCore;
 using RecipeFriends.Data;
 using RecipeFriends.Data.Models;
@@ -36,7 +37,7 @@ public class RecipeService : IRecipeService
     public async Task<bool> SaveRecipeDetailsAsync(RecipeDetails recipeDTO, CancellationToken cancellationToken)
     {     
         if (recipeDTO.Id > 0) {
-            var existingRecipe = await _context.Recipes.Include(r => r.Tags).FirstOrDefaultAsync(r => r.Id == recipeDTO.Id);
+            var existingRecipe = await _context.Recipes.Include(r => r.Tags).FirstOrDefaultAsync(r => r.Id == recipeDTO.Id, cancellationToken: cancellationToken);
 
             if (existingRecipe == null)
             {
@@ -55,7 +56,7 @@ public class RecipeService : IRecipeService
             // Handle tags
             // Identify tags that are no longer associated
             var tagsToRemove = existingRecipe.Tags
-                                                .Where(rt => !recipeDTO.Tags.Any(t => t == rt.Name))
+                                                .Where(rt => !recipeDTO.Tags.Any(t => t.Id == rt.Id))
                                                 .ToList();
 
             foreach (var tagToRemove in tagsToRemove)
@@ -67,12 +68,12 @@ public class RecipeService : IRecipeService
             foreach (var tagDTO in recipeDTO.Tags)
             {
                 // Check if the tag already exists in the database
-                if (!existingRecipe.Tags.Any(rt => rt.Name == tagDTO))
+                if (!existingRecipe.Tags.Any(rt => rt.Id == tagDTO.Id))
                 {
-                    var tagRecipe = _context.Tags.FirstOrDefault((x) => x.Name == tagDTO);
+                    var tagRecipe = _context.Tags.FirstOrDefault((x) => x.Id == tagDTO.Id);
                     if (tagRecipe == null)
                     {
-                        tagRecipe = new Data.Models.Tag() { Name = tagDTO };
+                        tagRecipe = new Data.Models.Tag() { Name = tagDTO.Name };
                         _context.Tags.Add(tagRecipe);
                     }
                     existingRecipe.Tags.Add(tagRecipe);
@@ -113,6 +114,12 @@ public class RecipeService : IRecipeService
         return true;
     }
 
+    public async Task<TagInfo[]> GetTagsAsync(CancellationToken cancellationToken){
+        var tags = await _context.Tags.ToListAsync(cancellationToken: cancellationToken);
+        var result = new List<TagInfo>();
+        return tags.Select(ToTagDTO).ToArray();
+    }
+
            private Data.Models.Recipe ToRecipe(RecipeDetails recipeDTO)
         {
             var recipe = new Data.Models.Recipe
@@ -130,11 +137,11 @@ public class RecipeService : IRecipeService
             foreach (var tagDTO in recipeDTO.Tags)
             {
                 // Check if the tag already exists in the database                
-                var existingTag = _context.Tags.FirstOrDefault((x) => x.Name == tagDTO);
+                var existingTag = _context.Tags.FirstOrDefault((x) => x.Id == tagDTO.Id);
                 if (existingTag == null)
                 {
                     // The tag doesn't exist, so create it
-                    existingTag = new Data.Models.Tag { Name = tagDTO };
+                    existingTag = new Data.Models.Tag { Name = tagDTO.Name };
                     _context.Tags.Add(existingTag);
                 }
 
@@ -161,7 +168,7 @@ public class RecipeService : IRecipeService
                 PreparationTime = recipe.PreparationTime,
                 CookingTime = recipe.CookingTime,
                 Ingredients = recipe.Ingredients.Select(ToIngredientDTO).ToList(),
-                Tags = recipe.Tags.Select(rt => rt.Name).ToList()
+                Tags = recipe.Tags.Select(rt => new TagInfo() { Id = rt.Id, Name = rt.Name}).ToList()
             };
         }
 
@@ -189,6 +196,13 @@ public class RecipeService : IRecipeService
                 Amount = ingredient.Amount,
                 Measurement = ingredient.Measurement,
                 Order = ingredient.Order
+            };
+        }
+
+        private TagInfo ToTagDTO(Data.Models.Tag tag){
+            return new TagInfo{
+                Id = tag.Id,
+                Name = tag.Name
             };
         }
 }
