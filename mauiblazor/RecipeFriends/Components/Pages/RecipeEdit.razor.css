@@ -1,4 +1,4 @@
-﻿.shortDescription-textarea {
+﻿/* .shortDescription-textarea {
     height: 150px;
 }
 
@@ -16,8 +16,26 @@
 
 .markdown-editor-wrapper {
     margin-bottom: 50px;  
+} */
+
+/* ::deep .EasyMDEContainer .CodeMirror .CodeMirror-scroll {
+    min-height: 150px !important;
+} */
+
+/* .editor-preview {
+
+} */
+
+::deep .editor-preview-active-side, 
+::deep .editor-preview-full {
+    padding-left: 25px;
 }
 
-.EasyMDEContainer .CodeMirror .CodeMirror-scroll {
-    min-height: 150px !important;
+::deep .editor-preview-side ul, 
+::deep .editor-preview-full ul {
+    list-style-type: disc;
+}
+
+::deep .tst {
+    color: blue;
 }

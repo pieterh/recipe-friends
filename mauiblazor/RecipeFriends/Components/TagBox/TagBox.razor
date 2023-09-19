@@ -1,0 +1,55 @@
+﻿<MudElement>
+
+    <MudChipSet AllClosable="true" OnClose="ChipClosed" style="display:inline-flex" >
+    @foreach (var tag in RecipeTags)
+    {
+        <MudChip Text="@tag.Name" Tag="@tag"></MudChip>
+    }
+    </MudChipSet>
+    <div style="display:inline-flex">
+        <MudAutocomplete T="TagInfo" Value="value1" SearchFunc="@SearchTags" ValueChanged="@AddTag" ToStringFunc="@(e=> e == null ? null : e.Name)"/>
+    </div>
+</MudElement>
+
+@code {
+    private string inputText = string.Empty;
+    private TagInfo value1 ;
+    private bool resetValueOnEmptyText = true;
+
+    private List<TagInfo> filteredTags = new List<TagInfo>();
+
+    [Parameter]
+    public List<TagInfo> AllTags { get; set; } = new List<TagInfo>();
+
+    [Parameter]
+    public List<TagInfo> RecipeTags { get; set; } = new List<TagInfo>();
+
+    [Parameter]
+    public EventCallback<List<TagInfo>> OnTagsUpdated { get; set; }
+
+    public void ChipClosed(MudChip chip) => RemoveTag(chip.Tag as TagInfo);
+
+    private async Task<IEnumerable<TagInfo>> SearchTags(string value)
+    {
+        filteredTags = AllTags                        
+                        .Where(t => t.Name.Contains(inputText, StringComparison.OrdinalIgnoreCase))
+                        .Where(t => !RecipeTags.Any(rt => rt.Id == t.Id))                                                
+                        .OrderBy((x) => x.Name)
+                        .Take(10)                        
+                        .ToList();
+        return await Task.FromResult<IEnumerable<TagInfo>>(filteredTags);
+    }
+
+    private void AddTag(TagInfo tag)
+    {
+        RecipeTags.Add(tag);
+        inputText = string.Empty;
+        OnTagsUpdated.InvokeAsync(RecipeTags);
+    }
+
+    private void RemoveTag(TagInfo tag)
+    {
+        RecipeTags.RemoveAll(t => t.Id == tag.Id);
+        OnTagsUpdated.InvokeAsync(RecipeTags);
+    }
+}

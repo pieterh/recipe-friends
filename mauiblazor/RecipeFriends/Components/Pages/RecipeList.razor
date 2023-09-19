@@ -18,7 +18,7 @@
 }
 else
 {
-    <MudDataGrid T="RecipeInfo" Items="@recipes" QuickFilter="@_quickFilter">
+    <MudDataGrid T="RecipeInfo" Items="@recipes" Filterable="true" QuickFilter="@_quickFilter">
         <ToolBarContent>
             <MudButton OnClick="() => NewRecipe()" Color="@Color.Success" Class="add-item-btn">Add Item</MudButton>
             <MudButton Color="@Color.Error" Class="remove-item-btn">Remove Item</MudButton>                        
@@ -26,17 +26,18 @@ else
                 AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
         </ToolBarContent>
         <Columns>
-            <PropertyColumn Property="x => x.Title" Title="Title" />
+            <PropertyColumn Property="x => x.Title" Title="Title" Filterable="false" />
             <PropertyColumn Property="x => x.Catagory" Title="Catagory"/>
+            <PropertyColumn Property="x => x.TagsAsString" Title="Tags" Filterable="false"/>
             <TemplateColumn CellClass="d-flex justify-end">
-            <CellTemplate>
-                <MudStack Row>
-                    <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="() => ViewRecipe(context.Item.Id)">View</MudButton>
-                    <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="async () => await GoToEditPage(context.Item.Id)">Edit</MudButton>
-                    <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="() => DownloadRecipe(context.Item.Id)">Download</MudButton>                    
-                </MudStack>
-            </CellTemplate>
-        </TemplateColumn>
+                <CellTemplate>
+                    <MudStack Row>
+                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="() => ViewRecipe(context.Item.Id)">View</MudButton>
+                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="async () => await GoToEditPage(context.Item.Id)">Edit</MudButton>
+                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="() => DownloadRecipe(context.Item.Id)">Download</MudButton>                    
+                    </MudStack>
+                </CellTemplate>
+            </TemplateColumn>
         </Columns>
         <PagerContent>
             <MudDataGridPager T="RecipeInfo" />
@@ -64,6 +65,9 @@ else
         if (x.ShortDescription.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
 
+        if (x.TagsAsString.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
         return false;
     };
 
@@ -72,7 +76,7 @@ else
         var parameters = new DialogParameters<RecipeView>();
         parameters.Add(x => x.Id, -1);
 
-        var options = new DialogOptions {  MaxWidth = MaxWidth.Medium, FullWidth = true, DisableBackdropClick = true, CloseOnEscapeKey = true };
+        var options = new DialogOptions {  MaxWidth = MaxWidth.Medium,  FullWidth = true, DisableBackdropClick = true, CloseOnEscapeKey = true };
         var dialog = DialogService.Show<RecipeEdit>("", parameters, options);
         await dialog.Result;  
         await RefreshRecipes();            

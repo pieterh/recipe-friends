@@ -1,6 +1,6 @@
 ﻿@page "/recipe/edit/{Id:int}"
 @using RecipeFriends.Shared.DTO
-@using RecipeFriends.Components.Tag
+@using RecipeFriends.Components.TagBox
 @using RecipeFriends.Data
 @using RecipeFriends.Services
 
@@ -8,70 +8,64 @@
 @inject NavigationManager NavigationManager
 
 <MudDialog>
-        <TitleContent>
+    <TitleContent>
         <MudText Typo="Typo.subtitle1">Edit Recipe</MudText>
     </TitleContent>
     <DialogContent>
-        <MudContainer Style="max-height: 300px; overflow-y: scroll">
-    @if (recipeDetails == null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else
-    {
-        <EditForm Model="@recipeDetails" OnValidSubmit="HandleValidSubmit">
-            
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+        <div>
+        <MudContainer Style="max-height: 600px; overflow-y: scroll">
+        @if (recipeDetails == null)
+        {
+            <p><em>Loading...</em></p>
+        }
+        else
+        {
+             <EditForm Model="@recipeDetails" OnValidSubmit="HandleValidSubmit">
+                
+                <DataAnnotationsValidator />
+                <ValidationSummary />
 
-
-            <MudGrid Spacing="2" Justify="Justify.Center" >
-                <MudItem xs="12">
-                    <MudPaper Height="120px" xs="12" Class="pa-4">             
-                        <div class="d-flex flex-column py-1">
-                            <InputText id="title" xs="8" @bind-Value="recipeDetails.Title" />                      
-                            <InputSelect id="catagory"  xs="4" TValue="Shared.Catagories" @bind-Value="recipeDetails.Catagory">
-                                @foreach (var cat in Enum.GetValues<Shared.Catagories>())
-                                {
-                                    <option value="@cat">@cat</option>
-                                }
-                            </InputSelect>                                               
-                        </div>
-                    </MudPaper>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudPaper Height="204px" xs="12">
-                        <EditTag AllTags="@allTags" RecipeTags="recipeDetails.Tags"></EditTag>                        
-                    </MudPaper>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudPaper Height="204px" xs="12">
-                        <MarkdownEditor MaxHeight="100px" @bind-Value="@recipeDetails.ShortDescription" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide", "table" })'/>                        
-                    </MudPaper>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudPaper Height="329px" xs="12">                        
-                        <MarkdownEditor MaxHeight="225px" @bind-Value="@recipeDetails.Description" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })'/>                        
-                    </MudPaper>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudPaper Height="329px" xs="12">                       
-                        <MarkdownEditor MaxHeight="225px" @bind-Value="@recipeDetails.Directions" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })'/>                       
-                    </MudPaper>
-                </MudItem>   
-            </MudGrid>          
-
- 
-        
-        </EditForm>
-                   @if (!string.IsNullOrEmpty(saveStatusMessage))
+                <MudGrid Spacing="2" Justify="Justify.Center" >
+                    <MudItem xs="12">
+                        <MudPaper Height="175px" xs="12" Class="pa-4">             
+                            <div class="d-flex flex-column py-1">
+                                <InputText id="title" xs="8" @bind-Value="recipeDetails.Title" />                      
+                                <InputSelect id="catagory"  xs="4" TValue="Shared.Catagories" @bind-Value="recipeDetails.Catagory">
+                                    @foreach (var cat in Enum.GetValues<Shared.Catagories>())
+                                    {
+                                        <option value="@cat">@cat</option>
+                                    }
+                                </InputSelect>
+                                <TagBox AllTags="@allTags" RecipeTags="recipeDetails.Tags" ></TagBox>                                               
+                            </div>
+                        </MudPaper>
+                    </MudItem>              
+                    <MudItem xs="12">                       
+                        <MudPaper Height="204px" xs="12">
+                            <MarkdownEditor MaxHeight="100px" @bind-Value="@recipeDetails.ShortDescription" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide", "table" })'/>                        
+                        </MudPaper>                       
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudPaper Height="329px" xs="12">                        
+                            <MarkdownEditor MaxHeight="225px" @bind-Value="@recipeDetails.Description" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })'/>                        
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudPaper Height="329px" xs="12">                       
+                            <MarkdownEditor MaxHeight="225px" @bind-Value="@recipeDetails.Directions" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })'/>                       
+                        </MudPaper>
+                    </MudItem>   
+                </MudGrid>          
+            </EditForm>
+            @if (!string.IsNullOrEmpty(saveStatusMessage))
             {
                 <div class="alert alert-info">
                     @saveStatusMessage
                 </div>
             }
-    }
-    </MudContainer>
+        }
+        </MudContainer>
+        </div>
     </DialogContent>
 
     <DialogActions>
@@ -98,19 +92,6 @@
         var t = await RecipeService.GetTagsAsync(CancellationToken.None);
         allTags = t.ToList();
     }
-
-        @* string markdownValue = "#Markdown Editor\nThis is a test";
-    string markdownHtml;
-
-    Task OnMarkdownValueChanged(string value)
-    {
-        return Task.CompletedTask;
-    }
-    Task OnMarkdownValueHTMLChanged(string value)
-    {
-        markdownHtml = value;
-        return Task.CompletedTask;
-    } *@
 
     private async Task HandleValidSubmit()
     {

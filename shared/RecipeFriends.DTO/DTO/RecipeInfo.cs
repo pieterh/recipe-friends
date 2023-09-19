@@ -21,4 +21,5 @@ public class RecipeInfo
     public required string ShortDescription { get; set; }
 
     public List<string> Tags { get; set; } = new List<string>();
+    public string TagsAsString {get {return string.Join(", ", Tags.Order());} }
 }
