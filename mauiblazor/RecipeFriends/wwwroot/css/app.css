@@ -1,4 +1,7 @@
-﻿html, body {
+﻿@import url("google/google.css");
+@import url("microsoft/microsoft.css");
+
+html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 

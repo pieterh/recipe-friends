@@ -168,7 +168,8 @@ public class RecipeService : IRecipeService
                 PreparationTime = recipe.PreparationTime,
                 CookingTime = recipe.CookingTime,
                 Ingredients = recipe.Ingredients.Select(ToIngredientDTO).ToList(),
-                Tags = recipe.Tags.Select(rt => new TagInfo() { Id = rt.Id, Name = rt.Name}).ToList()
+                Tags = recipe.Tags.Select(rt => new TagInfo() { Id = rt.Id, Name = rt.Name}).ToList(),
+                Images = recipe.Images.Select(rt => new RecipeFriends.Shared.DTO.ImageInfo() { Id = rt.Id, Title = rt.Title, Name = rt.Name }).ToList()
             };
         }
 

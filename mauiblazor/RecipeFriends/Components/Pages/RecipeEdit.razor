@@ -39,22 +39,31 @@
                                 <TagBox AllTags="@allTags" RecipeTags="recipeDetails.Tags" ></TagBox>                                               
                             </div>
                         </MudPaper>
-                    </MudItem>              
+                    </MudItem>
+                    <MudInputLabel>Short description</MudInputLabel>              
                     <MudItem xs="12">                       
                         <MudPaper Height="204px" xs="12">
                             <MarkdownEditor MaxHeight="100px" @bind-Value="@recipeDetails.ShortDescription" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide", "table" })'/>                        
                         </MudPaper>                       
                     </MudItem>
+                    <MudInputLabel>Description</MudInputLabel>
                     <MudItem xs="12">
                         <MudPaper Height="329px" xs="12">                        
                             <MarkdownEditor MaxHeight="225px" @bind-Value="@recipeDetails.Description" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })'/>                        
                         </MudPaper>
                     </MudItem>
+                    <MudInputLabel>Directions</MudInputLabel>
                     <MudItem xs="12">
                         <MudPaper Height="329px" xs="12">                       
                             <MarkdownEditor MaxHeight="225px" @bind-Value="@recipeDetails.Directions" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })'/>                       
                         </MudPaper>
-                    </MudItem>   
+                    </MudItem>
+                    <MudInputLabel>Notes</MudInputLabel>
+                    <MudItem xs="12">
+                        <MudPaper Height="329px" xs="12">                       
+                            <MarkdownEditor MaxHeight="225px" @bind-Value="@recipeDetails.Notes" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })'/>                       
+                        </MudPaper>
+                    </MudItem>                         
                 </MudGrid>          
             </EditForm>
             @if (!string.IsNullOrEmpty(saveStatusMessage))

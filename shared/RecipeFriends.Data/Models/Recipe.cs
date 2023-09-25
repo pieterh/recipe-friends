@@ -15,10 +15,15 @@ public class Recipe
     public required string ShortDescription { get; set; }
     public required string Description { get; set; }
     public required string Directions { get; set; }
+
+    public string? Notes { get; set;}
+
     public required TimeOnly PreparationTime { get; set; }
     public required TimeOnly CookingTime { get; set; }
 
     // Navigation properties for the many-to-many relationships
     public virtual ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
     public virtual ICollection<Tag> Tags { get; set; } = new List<Tag>();
+
+    public virtual ICollection<ImageData> Images { get; set; } = new List<RecipeFriends.Data.Models.ImageData>();
 }

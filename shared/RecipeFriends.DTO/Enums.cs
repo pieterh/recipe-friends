@@ -14,6 +14,7 @@ public enum Catagories
 
 public enum Measurement
 {
+    Number = 80,
     Tablespoon = 10,
     Teaspoon = 20,
     Milliliter = 30,

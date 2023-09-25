@@ -15,10 +15,17 @@
 }
 else
 {
-    <MudMarkdown Value="@recipeMarkDown" />
+    <MudContainer Style="height: 90vh; position: relative" >
+        <MudContainer Style="overflow-y: scroll; position: absolute; top:0; bottom: 0">
+            <div class="container">
+                @((MarkupString)recipeHtml)
+            </div>
+        </MudContainer>
+    </MudContainer>
+
 }
-</DialogContent>
-    <DialogActions>
+    </DialogContent>
+    <DialogActions >
         <MudButton Color="Color.Primary" OnClick="Close">Ok</MudButton>
     </DialogActions>
 </MudDialog>
@@ -32,10 +39,12 @@ else
 
     private string recipeMarkDown = string.Empty;
 
+    private string recipeHtml = string.Empty;
     protected override async Task OnInitializedAsync()
     {
         recipeMarkDown = await DocumentService.RecipeToMarkdownAsync(Id, CancellationToken.None).ConfigureAwait(true);
-        Console.WriteLine(recipeMarkDown);
+        recipeHtml = await DocumentService.RecipeToHtmlAsync(Id, CancellationToken.None).ConfigureAwait(true);
+        Console.WriteLine(recipeHtml);
     }
 
     private void Cancel()

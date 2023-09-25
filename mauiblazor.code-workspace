@@ -5,6 +5,12 @@
 		},
 		{
 			"path": "shared"
+		},
+		{
+			"path": "shared/RecipeFriends.Data"
+		},
+		{
+			"path": "shared/RecipeFriends.DTO"
 		}
 	],
 	"settings": {}

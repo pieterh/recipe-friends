@@ -18,7 +18,7 @@
 }
 else
 {
-    <MudDataGrid T="RecipeInfo" Items="@recipes" Filterable="true" QuickFilter="@_quickFilter">
+    <MudDataGrid T="RecipeInfo" Items="@recipes" Filterable="true" QuickFilter="@_quickFilter" FilterMode="@DataGridFilterMode.ColumnFilterRow">
         <ToolBarContent>
             <MudButton OnClick="() => NewRecipe()" Color="@Color.Success" Class="add-item-btn">Add Item</MudButton>
             <MudButton Color="@Color.Error" Class="remove-item-btn">Remove Item</MudButton>                        
@@ -26,10 +26,31 @@ else
                 AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
         </ToolBarContent>
         <Columns>
-            <PropertyColumn Property="x => x.Title" Title="Title" Filterable="false" />
-            <PropertyColumn Property="x => x.Catagory" Title="Catagory"/>
-            <PropertyColumn Property="x => x.TagsAsString" Title="Tags" Filterable="false"/>
-            <TemplateColumn CellClass="d-flex justify-end">
+            <PropertyColumn Property="x => x.Title" Title="Title" />
+            <PropertyColumn Property="x => x.Catagory" Title="Catagory" />
+            <PropertyColumn Property="x => x.TagsAsString" Title="Tags">
+                <FilterTemplate>
+                    <MudIconButton OnClick="@OpenTagFilter" Icon="@_icon" Size="@Size.Small" />
+                    <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)" />
+                    <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Style="width:150px">
+                        <MudStack Spacing="0">
+                            <MudCheckBox T="bool" Label="Select All" Size="@Size.Small" Checked="@_selectAll" CheckedChanged="@SelectAll" />
+                            <MudStack Spacing="0" Style="overflow-y:auto;max-height:250px">
+                                @foreach (var item in tags)
+                                {
+                                    <MudCheckBox T="bool" Label="@($"{item.Name}")" Size="@Size.Small" Checked="@(_selectedItems.Contains(item))"
+                                        CheckedChanged="@((value) => SelectedChanged(value, item))" />
+                                }
+                            </MudStack>
+                            <MudStack Row="true">
+                                    <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
+                                    <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
+                            </MudStack>
+                        </MudStack>
+                    </MudPopover>
+                </FilterTemplate>
+            </PropertyColumn>
+            <TemplateColumn CellClass="d-flex justify-end" Filterable="false" Sortable="false">
                 <CellTemplate>
                     <MudStack Row>
                         <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="() => ViewRecipe(context.Item.Id)">View</MudButton>
@@ -46,12 +67,33 @@ else
 }
 
 @code {
-    private RecipeFriends.Shared.DTO.RecipeInfo[]? recipes;
+    private RecipeFriends.Shared.DTO.RecipeInfo[] recipes;
+    private RecipeFriends.Shared.DTO.TagInfo[] tags;
     private string searchString = string.Empty;
+
+    HashSet<TagInfo> _selectedItems = new();
+    HashSet<TagInfo> _filterItems = new();
+        FilterDefinition<RecipeInfo> _filterDefinition;
+    string _icon = Icons.Material.Outlined.FilterAlt;
+    bool _selectAll = true;
+    bool _filterOpen = false;
 
     protected override async Task OnInitializedAsync()
     {
         await RefreshRecipes();
+        tags = await RecipeService.GetTagsAsync(CancellationToken.None);
+        _selectedItems = tags.ToHashSet();
+        _filterItems = tags.ToHashSet();
+
+        _filterDefinition = new FilterDefinition<RecipeInfo>
+        {
+            FilterFunction = (x) => 
+            { 
+                var f = _filterItems.Select(x => x.Name).Intersect(x.Tags);
+                return f.Count() > 0;
+            }
+        };
+
     }
 
     private Func<RecipeInfo, bool> _quickFilter => x =>
@@ -70,6 +112,55 @@ else
 
         return false;
     };
+
+    void OpenTagFilter()
+    {
+        _filterOpen = true;
+    }
+
+    private async Task ClearFilterAsync(FilterContext<RecipeInfo> context)
+    {
+        _selectedItems = tags.ToHashSet();
+        _filterItems = tags.ToHashSet();
+        _icon = Icons.Material.Outlined.FilterAlt;
+        await context.Actions.ClearFilterAsync(_filterDefinition);
+        _filterOpen = false;
+    }
+
+    private async Task ApplyFilterAsync(FilterContext<RecipeInfo> context)
+    {
+        _filterItems = _selectedItems.ToHashSet();
+        _icon = _filterItems.Count == tags.Count() ? Icons.Material.Outlined.FilterAlt : Icons.Material.Filled.FilterAlt;
+        await context.Actions.ApplyFilterAsync(_filterDefinition);
+        _filterOpen = false;
+    }
+
+    private void SelectedChanged(bool value, TagInfo item)
+    {
+        if (value)
+            _selectedItems.Add(item);
+        else
+            _selectedItems.Remove(item);
+
+        if (_selectedItems.Count == tags.Count())
+            _selectAll = true;
+        else
+            _selectAll = false;
+    }
+
+    private void SelectAll(bool value)
+    {
+        _selectAll = value;
+
+        if (value)
+        {
+            _selectedItems = tags.ToHashSet();
+        }
+        else
+        {
+            _selectedItems.Clear();
+        }
+    }
 
     private async Task NewRecipe()
     { 

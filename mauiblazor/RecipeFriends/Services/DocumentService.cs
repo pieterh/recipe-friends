@@ -4,6 +4,7 @@ using MarkdownPdf;
 using PdfSharpCore.Fonts;
 
 using RecipeFriends.Services;
+using RecipeFriends.Shared.DTO;
 using RecipeFriends.Shared.Markdown;
 
 namespace RecipeFriends;
@@ -26,24 +27,104 @@ public class DocumentService : IDocumentService
         recipeMarkdown.AppendLine();
         recipeMarkdown.AppendLine(recipe.ShortDescription);
         recipeMarkdown.AppendLine("***");
+        recipeMarkdown.AppendLine("## Description");
         recipeMarkdown.AppendLine(recipe.Description);
         recipeMarkdown.AppendLine("***");
+        recipeMarkdown.AppendLine("## Directions");
         recipeMarkdown.AppendLine(recipe.Directions);
+        recipeMarkdown.AppendLine("***");
+        recipeMarkdown.AppendLine("## Personal notes");
+        recipeMarkdown.AppendLine(recipe.Notes);        
         return recipeMarkdown.ToString();
     }
 
     public async Task<string> RecipeToHtmlAsync(int id, CancellationToken cancellationToken)
     {
-        var recipeMarkdown = await RecipeToMarkdownAsync(id, cancellationToken);       
+        //var recipeMarkdown = await RecipeToMarkdownAsync(id, cancellationToken);       
+        var recipe = await _recipeService.GetRecipeDetailsAsync(id, cancellationToken);
         var p = new MarkdownProcessor();
-        p.ToHtml(recipeMarkdown, out var recipeHtml);
-        return recipeHtml;
+        // p.ToHtml(recipeMarkdown, out var recipeHtml);
+        var recipeHtml = new StringBuilder();
+
+        recipeHtml.AppendLine($"""
+        <div class="d-sm-flex">        
+            <div>          
+                <h5 class="py-3 mb-0 h2">{recipe.Title}</h5>
+            </div>
+        </div>
+        """);
+
+        recipeHtml.AppendLine($"<div class=\"blog-detail\">");
+        recipeHtml.AppendLine($"<hr/>");
+        recipeHtml.AppendLine($"<p>{p.ToHtml(recipe.ShortDescription)}</p>");
+        recipeHtml.AppendLine($"<br/>");
+        recipeHtml.AppendLine($"<p>{p.ToHtml(recipe.Description)}</p>");
+        recipeHtml.AppendLine($"<hr/>");
+        recipeHtml.AppendLine($"<div class=\"row mt-0 mt-md-5\">");
+        recipeHtml.AppendLine($"<div class=\"col-lg-8 col-md-7\">");
+        recipeHtml.AppendLine($"""
+            <div class="border-md-right pr-0 pr-lg-5"> 
+                <ul class="list-unstyled component-list tstbite-svg">
+                    <li>
+                    <small>Prep Time</small>
+                    <span>15 min</span>
+                    </li>
+                    <li>
+                    <small>Cook Time</small>
+                    <span>15 min</span>
+                    </li>
+                    <li>
+                    <small>Servings</small>
+                    <span>4 People</span>
+                    </li>                
+                </ul>            
+        """); 
+        
+        recipeHtml.AppendLine($"<div class=\"mt-3 mt-md-5\"><h6>Directions</h6>{DirectionsHtml(recipe.Directions)}</div>");
+        recipeHtml.AppendLine($"</div></div>");
+        recipeHtml.AppendLine($"<div class=\"col-lg-4 col-md-5\">");
+        recipeHtml.AppendLine($"<div class=\"rounded-12 bg-lightest-gray p-4\"><h6>Ingredients</h6><ul class=\"Nutrition-list list-unstyled\">{IngredientsHtml(recipe.Ingredients)}</ul></div>");
+        recipeHtml.AppendLine($"<br/>");
+        recipeHtml.AppendLine($"<div class=\"rounded-12 bg-lightest-gray p-4\"><h6>Equipment</h6><ul class=\"Nutrition-list list-unstyled\">{EquipmentHtml(new string[] {"skillet"})}</ul></div>");
+
+        
+
+        recipeHtml.AppendLine($"</div></div>");
+        return recipeHtml.ToString();
+    }
+
+    private string DirectionsHtml(string directions){
+        var b = new StringBuilder();
+        b.AppendLine("<ul class=\"instruction-list list-unstyled\">");
+        var lines = directions.Split('\n');
+        int nr = 1;
+        foreach(var line in lines){
+            b.AppendLine($"<li><span>{nr}</span>{line}</span></li>");
+            nr++;
+        }
+        b.AppendLine("</ul>");
+        return b.ToString();
+    }
+
+    private string IngredientsHtml(IEnumerable<IngredientDetails> ingredients){
+        var b = new StringBuilder();
+        foreach(var i in ingredients){
+            b.AppendLine($"<li><span>{i.Name}</span><span>{i.Amount}{i.Measurement.ToString()}</span></li>");
+        }
+        return b.ToString();
+    }
+
+private string EquipmentHtml(IEnumerable<string> equipmentlist){
+        var b = new StringBuilder();
+        foreach(var e in equipmentlist){
+            b.AppendLine($"<li><span>{e}</span></li>");
+        }
+        return b.ToString();
     }
 
     public async Task<byte[]> RecipeToPDFAsync(int id, CancellationToken cancellationToken)
     {
         var recipe = await _recipeService.GetRecipeDetailsAsync(id, cancellationToken);
-
         
         var markdown = new StringBuilder();
         markdown.Append("# " + recipe.Title + Environment.NewLine);
@@ -54,12 +135,13 @@ public class DocumentService : IDocumentService
         markdown.Append(Environment.NewLine);
         markdown.Append(recipe.Directions);
 
-        MarkdownPdfGenerator generator = new();
-
-        generator.LeftMargin = Unit.FromInch(0.5);
-        generator.RightMargin = Unit.FromInch(0.5);
-        generator.TopMargin = Unit.FromInch(0.5);
-        generator.BottomMargin = Unit.FromInch(0.5);       
+        MarkdownPdfGenerator generator = new()
+        {
+            LeftMargin = Unit.FromInch(0.5),
+            RightMargin = Unit.FromInch(0.5),
+            TopMargin = Unit.FromInch(0.5),
+            BottomMargin = Unit.FromInch(0.5)
+        };
 
         generator.GeneratePdf(markdown.ToString());
 

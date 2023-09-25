@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SQLite;
 using MudBlazor.Services;
 
+
 using RecipeFriends.Data;
 using RecipeFriends.Services;
 using MudBlazor;
@@ -65,6 +66,39 @@ public static class MauiProgram
 
 
 		var app = builder.Build();
+
+            // var provider = new FileExtensionContentTypeProvider();
+            // provider.Mappings.Clear();
+            // // Add new mappings
+            // provider.Mappings[".blat"] = "application/octet-stream";
+            // provider.Mappings[".br"] = "application/x-brotli";
+            // provider.Mappings[".css"] = "text/css";
+            // provider.Mappings[".dll"] = "application/octet-stream";
+            // provider.Mappings[".gif"] = "image/gif";
+            // provider.Mappings[".htm"] = "text/html";
+            // provider.Mappings[".html"] = "text/html";
+            // provider.Mappings[".dat"] = "application/octet-stream";
+            // provider.Mappings[".jpg"] = "image/jpg";
+            // provider.Mappings[".js"] = "text/javascript";
+            // provider.Mappings[".json"] = "application/json";
+            // provider.Mappings[".png"] = "image/png";
+            // provider.Mappings[".wasm"] = "application/wasm";
+            // provider.Mappings[".woff"] = "application/font-woff";
+            // provider.Mappings[".woff2"] = "application/font-woff";
+
+            // app.UseStaticFiles(new StaticFileOptions
+            // {
+            //     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(Env.WebRootPath),
+            //     RequestPath = string.Empty,
+            //     ContentTypeProvider = provider,
+            //     DefaultContentType = "application/octet-stream",
+            //     ServeUnknownFileTypes = true,
+            //     OnPrepareResponse = ctx =>
+            //     {
+            //         ctx.Context.Response.Headers.Append(
+            //              "Cache-Control", $"public, max-age={1}");
+            //     }
+            // });
 
 		using (var scope = app.Services.CreateScope())
 		{

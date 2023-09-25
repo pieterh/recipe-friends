@@ -15,7 +15,35 @@ namespace RecipeFriends.Data.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "7.0.10");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.0-rc.1.23419.6");
+
+            modelBuilder.Entity("RecipeFriends.Data.Models.ImageData", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("RecipeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipeId");
+
+                    b.ToTable("Image");
+                });
 
             modelBuilder.Entity("RecipeFriends.Data.Models.Ingredient", b =>
                 {
@@ -66,6 +94,9 @@ namespace RecipeFriends.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT");
+
                     b.Property<TimeSpan>("PreparationTime")
                         .HasColumnType("TEXT");
 
@@ -112,6 +143,13 @@ namespace RecipeFriends.Data.Migrations
                     b.ToTable("RecipeTag");
                 });
 
+            modelBuilder.Entity("RecipeFriends.Data.Models.ImageData", b =>
+                {
+                    b.HasOne("RecipeFriends.Data.Models.Recipe", null)
+                        .WithMany("Images")
+                        .HasForeignKey("RecipeId");
+                });
+
             modelBuilder.Entity("RecipeFriends.Data.Models.Ingredient", b =>
                 {
                     b.HasOne("RecipeFriends.Data.Models.Recipe", null)
@@ -136,6 +174,8 @@ namespace RecipeFriends.Data.Migrations
 
             modelBuilder.Entity("RecipeFriends.Data.Models.Recipe", b =>
                 {
+                    b.Navigation("Images");
+
                     b.Navigation("Ingredients");
                 });
 #pragma warning restore 612, 618
