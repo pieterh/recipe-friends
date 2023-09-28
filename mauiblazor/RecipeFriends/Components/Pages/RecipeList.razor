@@ -198,8 +198,8 @@ else
 
     private async void DownloadRecipe(int id)   {
         try{
-            var result = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(CancellationToken.None);
-            var pdf = await DocumentService.RecipeToPDFAsync(id, CancellationToken.None);
+            var result = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(CancellationToken.None).ConfigureAwait(true);
+            var pdf = await DocumentService.RecipeToPDFAsync(id, CancellationToken.None).ConfigureAwait(true);
             if (result.IsSuccessful)
             {               
                 using FileStream outputStream = System.IO.File.OpenWrite($"{result.Folder.Path}{Path.DirectorySeparatorChar}Recipe.pdf");

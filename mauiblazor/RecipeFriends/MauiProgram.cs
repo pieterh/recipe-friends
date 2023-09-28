@@ -1,16 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Xml;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using SQLite;
+
+using MudBlazor;
 using MudBlazor.Services;
+using CommunityToolkit.Maui;
 
+using NLog;
+using NLog.Config;
+using NLog.Extensions.Logging;
 
+using RecipeFriends.Components.Layout;
 using RecipeFriends.Data;
 using RecipeFriends.Services;
-using MudBlazor;
-using CommunityToolkit.Maui;
-using RecipeFriends.Components.Layout;
-
-
 
 namespace RecipeFriends;
 
@@ -33,26 +35,33 @@ public static class MauiProgram
 			});
 
 		builder.Services.AddMauiBlazorWebView();
-
+		builder.Logging.ClearProviders();
+		builder.Logging.AddNLog();
 #if DEBUG
 		builder.Services.AddBlazorWebViewDeveloperTools();
-		builder.Logging.AddDebug();
+		builder.Logging.AddDebug().AddFilter("Microsoft", Microsoft.Extensions.Logging.LogLevel.Warning);
 #endif
+
+		var assembly = typeof(MauiProgram).Assembly;
+		using var stream =  FileSystem.OpenAppPackageFileAsync("NLog.txt").GetAwaiter().GetResult();
+    	LogManager.Configuration = new XmlLoggingConfiguration(XmlReader.Create(stream), null);
+
+		var logger = NLog.LogManager.GetCurrentClassLogger();
+
         AppDomain.CurrentDomain.UnhandledException += (sender, args) => 
         {
 			Console.WriteLine("sadfas");
+			var logger = NLog.LogManager.GetCurrentClassLogger();
+			logger.Error($"In FirstChanceException {Environment.NewLine} {args.ExceptionObject}");
+			logger.Error(args.ExceptionObject as Exception, $"-");
         };
         AppDomain.CurrentDomain.FirstChanceException += (sender, args) =>
         {
-            Console.WriteLine("In FirstChanceException Handler");
-            Console.WriteLine($"{args.Exception.Message}");
-            Console.WriteLine($"==");
-           // Console.WriteLine($"{args.Exception.ToString()}");
+			var logger = NLog.LogManager.GetCurrentClassLogger();
+			logger.Error(args.Exception, $"In FirstChanceException {Environment.NewLine}");
         };
 
 		builder.Services.AddMudServices();
-		builder.Services.AddMudMarkdownServices();
-	
 
 		builder.Services.AddSingleton<RecipeFriendsContext>();
 		builder.Services.AddSingleton<IRecipeService, RecipeService > ();
@@ -64,41 +73,9 @@ public static class MauiProgram
 		Console.WriteLine(System.Runtime.InteropServices.RuntimeInformation.OSDescription);
 		Console.WriteLine(System.Runtime.InteropServices.RuntimeInformation.OSArchitecture);
 
+		FontSupport.Setup();
 
 		var app = builder.Build();
-
-            // var provider = new FileExtensionContentTypeProvider();
-            // provider.Mappings.Clear();
-            // // Add new mappings
-            // provider.Mappings[".blat"] = "application/octet-stream";
-            // provider.Mappings[".br"] = "application/x-brotli";
-            // provider.Mappings[".css"] = "text/css";
-            // provider.Mappings[".dll"] = "application/octet-stream";
-            // provider.Mappings[".gif"] = "image/gif";
-            // provider.Mappings[".htm"] = "text/html";
-            // provider.Mappings[".html"] = "text/html";
-            // provider.Mappings[".dat"] = "application/octet-stream";
-            // provider.Mappings[".jpg"] = "image/jpg";
-            // provider.Mappings[".js"] = "text/javascript";
-            // provider.Mappings[".json"] = "application/json";
-            // provider.Mappings[".png"] = "image/png";
-            // provider.Mappings[".wasm"] = "application/wasm";
-            // provider.Mappings[".woff"] = "application/font-woff";
-            // provider.Mappings[".woff2"] = "application/font-woff";
-
-            // app.UseStaticFiles(new StaticFileOptions
-            // {
-            //     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(Env.WebRootPath),
-            //     RequestPath = string.Empty,
-            //     ContentTypeProvider = provider,
-            //     DefaultContentType = "application/octet-stream",
-            //     ServeUnknownFileTypes = true,
-            //     OnPrepareResponse = ctx =>
-            //     {
-            //         ctx.Context.Response.Headers.Append(
-            //              "Cache-Control", $"public, max-age={1}");
-            //     }
-            // });
 
 		using (var scope = app.Services.CreateScope())
 		{
@@ -115,5 +92,7 @@ public static class MauiProgram
 		}
 		return app;
 	}
+
+        
 }
 

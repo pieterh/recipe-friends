@@ -1,4 +1,27 @@
-﻿
+﻿.dialog-content {
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+  height: calc(100vh - 112px); /* 100vh viewport height, minus estimated DialogActions height */
+}
+
+.image-container {
+  flex-grow: 1; 
+  overflow-y: auto; 
+}
+
+.image-fullscreen {
+  display:flex;
+  justify-content: center;
+  height:100vh;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+
 ::deep .container {
   margin-right: 0px;
   margin-left: 0px;

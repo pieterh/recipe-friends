@@ -20,6 +20,6 @@ public class RecipeInfo
     [StringLength(100, MinimumLength = 50)]
     public required string ShortDescription { get; set; }
 
-    public List<string> Tags { get; set; } = new List<string>();
+    public List<string> Tags { get; set; } = [];
     public string TagsAsString {get {return string.Join(", ", Tags.Order());} }
 }

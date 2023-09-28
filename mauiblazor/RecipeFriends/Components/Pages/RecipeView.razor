@@ -8,25 +8,48 @@
 
 <MudDialog>
     <DialogContent >
-
-@if (string.IsNullOrEmpty(recipeMarkDown))
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <MudContainer Style="height: 90vh; position: relative" >
-        <MudContainer Style="overflow-y: scroll; position: absolute; top:0; bottom: 0">
-            <div class="container">
-                @((MarkupString)recipeHtml)
+        <div class="dialog-content">
+        @if (string.IsNullOrEmpty(imageDataURL))
+        {
+            <p><em>Loading...</em></p>
+        }
+        else
+        {
+            <!-- MudBlazor Dialog content -->
+            <div class="image-container @(fullscreen ? "image-fullscreen": "")">
+                <img src="@imageDataURL" alt="Portrait" style="max-width: 100%;" />
             </div>
-        </MudContainer>
-    </MudContainer>
-
-}
+        }
+        </div>
     </DialogContent>
     <DialogActions >
-        <MudButton Color="Color.Primary" OnClick="Close">Ok</MudButton>
+        <MudToolBar>
+            <MudText>@currentPageNumber / @NumberOfPages</MudText>
+            <MudTooltip Delay="600" Text="First page">
+                <MudIconButton Icon="@Icons.Material.Outlined.FirstPage" Disabled=@OnFirstPage OnClick="FirstPage" Color="Color.Inherit"  />
+            </MudTooltip>
+            <MudTooltip Delay="600" Text="Previous page">
+                <MudIconButton Icon="@Icons.Material.Outlined.NavigateBefore" Disabled=@OnFirstPage OnClick="PreviousPage" Color="Color.Inherit" />
+            </MudTooltip>
+            <MudTooltip Delay="600" Text="Next page">
+                <MudIconButton Icon="@Icons.Material.Outlined.NavigateNext" Disabled=@OnLastPage OnClick="NextPage" Color="Color.Inherit"  />
+            </MudTooltip>
+            <MudTooltip Delay="600" Text="Last page">
+                <MudIconButton Icon="@Icons.Material.Outlined.LastPage" Disabled=@OnLastPage OnClick="LastPage" Color="Color.Inherit"  />
+            </MudTooltip>
+        @if (@CanShowFullscreen) {
+            <MudTooltip Delay="600" Text="Fullscreen" >
+                <MudIconButton Icon="@Icons.Material.Outlined.Fullscreen" OnClick="GoFullscreen" Color="Color.Inherit"  />
+            </MudTooltip>
+        }else{
+            <MudTooltip Delay="600" Text="Fullscreen Exit" >
+                <MudIconButton Icon="@Icons.Material.Outlined.FullscreenExit" OnClick="ExitFullscreen" Color="Color.Inherit"  />
+            </MudTooltip>            
+        }
+            <MudTooltip Delay="600" Text="Close">
+                <MudIconButton Icon="@Icons.Material.Outlined.Close" Color="Color.Primary" OnClick="Close">Ok</MudIconButton>
+            </MudTooltip>
+        </MudToolBar>
     </DialogActions>
 </MudDialog>
 
@@ -35,16 +58,66 @@ else
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     [Parameter] public int Id { get; set; }
 
+    public bool OnFirstPage {get {return currentPageNumber <= 1;}}
+    public bool OnLastPage {get {return currentPageNumber >= NumberOfPages;}}
+
+    public bool CanShowFullscreen {get {return !fullscreen;}}
+    public bool CanExitFullwidth {get {return fullscreen;}}
+
+    public bool fullscreen = true;
+
     void Close() => MudDialog.Close(DialogResult.Ok(true));
 
-    private string recipeMarkDown = string.Empty;
+    private string imageDataURL = string.Empty;
 
-    private string recipeHtml = string.Empty;
+    private IList<byte[]> pages;
+
+    private int currentPageNumber = 1;
+    private int NumberOfPages {get { return pages.Count();}}
+
+    @* private string recipeHtml = string.Empty; *@
     protected override async Task OnInitializedAsync()
     {
-        recipeMarkDown = await DocumentService.RecipeToMarkdownAsync(Id, CancellationToken.None).ConfigureAwait(true);
+        @* recipeMarkDown = await DocumentService.RecipeToMarkdownAsync(Id, CancellationToken.None).ConfigureAwait(true);
         recipeHtml = await DocumentService.RecipeToHtmlAsync(Id, CancellationToken.None).ConfigureAwait(true);
-        Console.WriteLine(recipeHtml);
+        Console.WriteLine(recipeHtml); *@
+
+        @* recipeHtml = await DocumentService.RecipeToHtmlAsync(Id, CancellationToken.None).ConfigureAwait(true); *@
+        var p = await DocumentService.RecipeToImageAsync(Id, CancellationToken.None).ConfigureAwait(true);
+        pages = p.ToList();
+        FirstPage();       
+    }
+
+    private void GoFullscreen(){
+        fullscreen = true;
+    }
+
+    private void ExitFullscreen(){
+        fullscreen = false;
+    }
+
+    private void GotoPage(int pagenr){
+        currentPageNumber = pagenr;
+        var imagesrc= Convert.ToBase64String(pages[pagenr - 1]);
+        imageDataURL = string.Format("data:image/jpeg;base64,{0}", imagesrc); 
+    }
+
+    private void FirstPage(){
+        GotoPage(1);
+    }
+
+    private void LastPage(){
+        GotoPage(NumberOfPages);
+    }
+
+    private void PreviousPage(){
+        if (!OnFirstPage)
+            GotoPage(currentPageNumber - 1);
+    }
+
+    private void NextPage(){
+        if (!OnLastPage)
+            GotoPage(currentPageNumber + 1);
     }
 
     private void Cancel()

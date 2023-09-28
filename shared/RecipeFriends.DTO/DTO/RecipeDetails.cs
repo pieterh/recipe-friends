@@ -40,7 +40,10 @@ public class RecipeDetails
     public virtual ICollection<IngredientDetails> Ingredients { get; set; } = new List<IngredientDetails>();
 
     public List<TagInfo> Tags { get; set; } = new List<TagInfo>();
+    public string TagsAsString {get {return string.Join(", ", Tags.Order().Select((t) => t.Name));} }
 
     public List<ImageInfo> Images { get; set; } = new List<ImageInfo>();
+
+    
 }
 
