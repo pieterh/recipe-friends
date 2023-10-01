@@ -79,7 +79,7 @@ public static class MauiProgram
 
 		using (var scope = app.Services.CreateScope())
 		{
-			var services = scope.ServiceProvider;
+ 			var services = scope.ServiceProvider;
 			try
 			{
 				var context = services.GetRequiredService<RecipeFriendsContext>();
@@ -88,6 +88,7 @@ public static class MauiProgram
 			catch (Exception ex)
 			{
 				// Log the exception or terminate the application based on your needs
+				logger.Error(ex, "Problem migrating database");
 			}
 		}
 		return app;

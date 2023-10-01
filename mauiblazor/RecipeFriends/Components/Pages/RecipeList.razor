@@ -27,7 +27,7 @@ else
         </ToolBarContent>
         <Columns>
             <PropertyColumn Property="x => x.Title" Title="Title" />
-            <PropertyColumn Property="x => x.Catagory" Title="Catagory" />
+            <PropertyColumn Property="x => x.Category.Name" Title="Category" />
             <PropertyColumn Property="x => x.TagsAsString" Title="Tags">
                 <FilterTemplate>
                     <MudIconButton OnClick="@OpenTagFilter" Icon="@_icon" Size="@Size.Small" />

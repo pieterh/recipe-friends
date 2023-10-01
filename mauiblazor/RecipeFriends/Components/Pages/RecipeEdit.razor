@@ -27,15 +27,15 @@
 
                 <MudGrid Spacing="2" Justify="Justify.Center" >
                     <MudItem xs="12">
-                        <MudPaper Height="175px" xs="12" Class="pa-4">             
+                        <MudPaper Height="250px" xs="12" Class="pa-4">             
                             <div class="d-flex flex-column py-1">
-                                <InputText id="title" xs="8" @bind-Value="recipeDetails.Title" />                      
-                                <InputSelect id="catagory"  xs="4" TValue="Shared.Catagories" @bind-Value="recipeDetails.Catagory">
-                                    @foreach (var cat in Enum.GetValues<Shared.Catagories>())
+                                <MudTextField id="title" xs="8" @bind-Value="recipeDetails.Title" />                      
+                                <MudSelect id="category"  xs="4" T="CategoryInfo" Value="recipeDetails.Category">
+                                    @foreach (var cat in allCategories ?? Enumerable.Empty<CategoryInfo>())
                                     {
-                                        <option value="@cat">@cat</option>
+                                        <MudSelectItem Value="cat" />
                                     }
-                                </InputSelect>
+                                </MudSelect>
                                 <TagBox AllTags="@allTags" RecipeTags="recipeDetails.Tags" ></TagBox>                                               
                             </div>
                         </MudPaper>
@@ -88,18 +88,21 @@
 
     private RecipeDetails? recipeDetails;
     private List<TagInfo> allTags;
+    private List<CategoryInfo> allCategories;
+    
 
     private string saveStatusMessage = string.Empty;
 
     protected override async Task OnInitializedAsync()
-    {
+    {        
+        allTags = (await RecipeService.GetTagsAsync(CancellationToken.None)) .ToList();
+        allCategories = (await RecipeService.GetCategoriesAsync(CancellationToken.None)).ToList();
+
         if (Id > 0) {
             recipeDetails = await RecipeService.GetRecipeDetailsAsync(Id, CancellationToken.None);
         }else{
-            recipeDetails = new(){Title ="", ShortDescription ="", Description = "", Directions = "", Catagory = Catagories.MainCourse, PreparationTime = TimeOnly.MinValue, CookingTime = TimeOnly.MinValue };
+            recipeDetails = new(){Title ="", ShortDescription ="", Description = "", Directions = "", Category = allCategories.First(), PreparationTime = TimeOnly.MinValue, CookingTime = TimeOnly.MinValue };
         }
-        var t = await RecipeService.GetTagsAsync(CancellationToken.None);
-        allTags = t.ToList();
     }
 
     private async Task HandleValidSubmit()

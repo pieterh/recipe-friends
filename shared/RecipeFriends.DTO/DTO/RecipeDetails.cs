@@ -13,8 +13,7 @@ public class RecipeDetails
     public required string Title { get; set; }
 
     [Required]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public required Catagories Catagory { get; set; }
+    public CategoryInfo Category { get; set; }   
 
     [Required]
     [StringLength(250, MinimumLength = 25)]

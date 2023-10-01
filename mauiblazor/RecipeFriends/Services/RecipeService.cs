@@ -46,7 +46,7 @@ public class RecipeService : IRecipeService
 
             // Update basic properties
             existingRecipe.Title = recipeDTO.Title;
-            existingRecipe.Catagory = recipeDTO.Catagory;
+            existingRecipe.CategoryId = recipeDTO.Category.Id;
             existingRecipe.ShortDescription = recipeDTO.ShortDescription;
             existingRecipe.Description = recipeDTO.Description;
             existingRecipe.Directions = recipeDTO.Directions;
@@ -83,7 +83,7 @@ public class RecipeService : IRecipeService
         else{
             var newRecipe = new Recipe(){
                 Title = recipeDTO.Title,
-                Catagory = recipeDTO.Catagory,
+                CategoryId = recipeDTO.Category.Id,
                 ShortDescription = recipeDTO.ShortDescription,
                 Description = recipeDTO.Description,
                 Directions = recipeDTO.Directions,
@@ -116,8 +116,17 @@ public class RecipeService : IRecipeService
 
     public async Task<TagInfo[]> GetTagsAsync(CancellationToken cancellationToken){
         var tags = await _context.Tags.ToListAsync(cancellationToken: cancellationToken);
-        var result = new List<TagInfo>();
         return tags.Select(ToTagDTO).ToArray();
+    }
+
+    public async Task<CategoryInfo[]> GetCategoriesAsync(CancellationToken cancellationToken){
+        var categories = await _context.Catagories.Where(c => c.Status == EntityStatus.Active).ToListAsync(cancellationToken: cancellationToken);
+        return categories.Select(ToCategoryDTO).ToArray();
+    }
+
+    public async Task<MeasurementInfo[]> GetMeasurementsAsync(CancellationToken cancellationToken){
+        var measurements = await _context.Measurements.ToListAsync(cancellationToken: cancellationToken);
+        return measurements.Select(ToMeasurementDTO).ToArray();
     }
 
            private Data.Models.Recipe ToRecipe(RecipeDetails recipeDTO)
@@ -126,7 +135,7 @@ public class RecipeService : IRecipeService
             {
                 Id = recipeDTO.Id,
                 Title = recipeDTO.Title,
-                Catagory = recipeDTO.Catagory,
+                CategoryId = recipeDTO.Category.Id,
                 ShortDescription = recipeDTO.ShortDescription,
                 Description = recipeDTO.Description,
                 Directions = recipeDTO.Directions,
@@ -151,17 +160,19 @@ public class RecipeService : IRecipeService
             return recipe;
         }
 
+
+
         private RecipeDetails ToRecipeDetailsDTO(Data.Models.Recipe recipe)
         {
-            // make sure the related lists are loaded
+            // make sure the related lists and references are loaded
             _context.Entry(recipe).Collection(r => r.Ingredients).Load();
             _context.Entry(recipe).Collection(r => r.Tags).Load();
-
+            _context.Entry(recipe).Reference(r => r.Category).Load();
             return new RecipeDetails
             {
                 Id = recipe.Id,
                 Title = recipe.Title,
-                Catagory = recipe.Catagory,
+                Category = ToCategoryDTO(recipe.Category),
                 ShortDescription = recipe.ShortDescription,
                 Description = recipe.Description,
                 Directions = recipe.Directions,
@@ -175,14 +186,14 @@ public class RecipeService : IRecipeService
 
         private RecipeInfo ToRecipeInfoDTO(Data.Models.Recipe recipe)
         {
-            // make sure the related lists are loaded
+            // make sure the related lists and references are loaded
             _context.Entry(recipe).Collection(r => r.Tags).Load();
-
+            _context.Entry(recipe).Reference(r => r.Category).Load();
             return new RecipeInfo
             {
                 Id = recipe.Id,
                 Title = recipe.Title,
-                Catagory = recipe.Catagory,
+                Category = new CategoryInfo() {Id = recipe.Category.CategoryId, Name = recipe.Category.Name},
                 ShortDescription = recipe.ShortDescription,
                 Tags = recipe.Tags.Select(rt => rt.Name).ToList()
             };
@@ -190,12 +201,13 @@ public class RecipeService : IRecipeService
 
         private IngredientDetails ToIngredientDTO(Data.Models.Ingredient ingredient)
         {
+            _context.Entry(ingredient).Reference(r => r.MeasurementNew).Load();
             return new IngredientDetails
             {
                 Id = ingredient.Id,
                 Name = ingredient.Name,
                 Amount = ingredient.Amount,
-                Measurement = ingredient.Measurement,
+                Measurement = ToMeasurementDTO(ingredient.MeasurementNew),
                 Order = ingredient.Order
             };
         }
@@ -204,6 +216,20 @@ public class RecipeService : IRecipeService
             return new TagInfo{
                 Id = tag.Id,
                 Name = tag.Name
+            };
+        }
+
+        private CategoryInfo ToCategoryDTO(Data.Models.Category category){
+            return new CategoryInfo{
+                Id = category.CategoryId,
+                Name = category.Name
+            };
+        }
+
+        private MeasurementInfo ToMeasurementDTO(Data.Models.Measurement measurement){
+            return new MeasurementInfo{
+                Id = measurement.MeasurementId,
+                Name = measurement.Name
             };
         }
 }

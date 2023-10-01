@@ -15,10 +15,18 @@ namespace RecipeFriends.Data;
 public class RecipeFriendsContext : DbContext
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-
     public static string DbPath { get; set; } = default!;
     public DbSet<Recipe> Recipes { get; set; } = default!;
     public DbSet<Tag> Tags { get; set; } = default!;
+
+    public DbSet<Language> Languages { get; set; } = default!;
+
+    public DbSet<Category> Catagories { get; set; } = default!;
+    public DbSet<Measurement> Measurements { get; set; } = default!;
+
+    public DbSet<MeasurementTranslation> MeasurementTranslations { get; set; } = default!;
+
+    public DbSet<CategoryTranslation> CategoryTranslations { get; set; } = default!;
 
     public RecipeFriendsContext()
     {
@@ -43,10 +51,28 @@ public class RecipeFriendsContext : DbContext
 
         ArgumentNullException.ThrowIfNull(modelBuilder);
 
+
+
         // create instances of the converters beeing used
         var dateTimeConverter = new DateTimeToUtcConverter();
         var nullableDateTimeConverter = new NullableDateTimeToUtcConverter();
         var timeOnlyConverter = new TimeOnlyConverter();
+
+        modelBuilder.Entity<Language>()
+            .Property(e => e.Status)
+            .HasConversion<int>();
+        modelBuilder.Entity<Category>()
+            .Property(e => e.Status)
+            .HasConversion<int>();
+
+        // foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        // {
+        //     foreach (var property in entityType.GetProperties()){
+        //         if (property.ClrType == typeof (EntityStatus))
+        //         property.SetValueConverter()
+        //             property.HasConversion<string>();
+        //     }
+        // }
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {

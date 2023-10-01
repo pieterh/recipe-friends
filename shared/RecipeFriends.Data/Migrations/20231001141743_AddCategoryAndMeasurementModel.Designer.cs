@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RecipeFriends.Data;
 
@@ -10,9 +11,11 @@ using RecipeFriends.Data;
 namespace RecipeFriends.Data.Migrations
 {
     [DbContext(typeof(RecipeFriendsContext))]
-    partial class RecipeFriendsContextModelSnapshot : ModelSnapshot
+    [Migration("20231001141743_AddCategoryAndMeasurementModel")]
+    partial class AddCategoryAndMeasurementModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0-rc.1.23419.6");

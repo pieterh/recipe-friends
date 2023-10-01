@@ -15,7 +15,7 @@ public class IngredientDetails
     public required double Amount { get; set; }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public required Measurement Measurement { get; set; }
+    public required MeasurementInfo Measurement { get; set; }
 
     public required int Order { get; set; }
 }
