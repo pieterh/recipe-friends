@@ -12,8 +12,6 @@ public class Ingredient
     public int Id { get; set; }
     public required string Name { get; set; }
     public required double Amount { get; set; }
-    // Change the Measurement enum to Measurement class
-    public RecipeFriends.Shared.Measurement Measurement { get; set; }  // Navigation property
     public int MeasurementId { get; set; }  // FK for Measurement
     [Required]
     public Measurement MeasurementNew { get; set; }  // Navigation property

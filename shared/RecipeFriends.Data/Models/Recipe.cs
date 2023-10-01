@@ -11,9 +11,7 @@ public class Recipe
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     public required string Title { get; set; }
-    // Change the Catagories enum to Category class
-    public RecipeFriends.Shared.Catagories Catagory { get; set; }
-    public int CategoryId { get; set; }
+     public int CategoryId { get; set; }
     public virtual Category Category { get; set; }
     
     public required string ShortDescription { get; set; }
