@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using RecipeFriends.Shared;
 
-namespace RecipeFriends.Data.Models;
+namespace RecipeFriends.Shared.Data.Models;
 
 [Table("Recipe")]
 public class Recipe
@@ -27,5 +26,5 @@ public class Recipe
     public virtual ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
     public virtual ICollection<Tag> Tags { get; set; } = new List<Tag>();
 
-    public virtual ICollection<ImageData> Images { get; set; } = new List<RecipeFriends.Data.Models.ImageData>();
+    public virtual ICollection<ImageData> Images { get; set; } = new List<ImageData>();
 }

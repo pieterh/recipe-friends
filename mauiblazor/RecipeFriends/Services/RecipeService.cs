@@ -1,8 +1,8 @@
 ﻿
 using Microsoft.AspNetCore.Components.RenderTree;
 using Microsoft.EntityFrameworkCore;
-using RecipeFriends.Data;
-using RecipeFriends.Data.Models;
+using RecipeFriends.Shared.Data;
+using RecipeFriends.Shared.Data.Models;
 using RecipeFriends.Shared.DTO;
 
 namespace RecipeFriends.Services;
@@ -73,7 +73,7 @@ public class RecipeService : IRecipeService
                     var tagRecipe = _context.Tags.FirstOrDefault((x) => x.Id == tagDTO.Id);
                     if (tagRecipe == null)
                     {
-                        tagRecipe = new Data.Models.Tag() { Name = tagDTO.Name };
+                        tagRecipe = new Tag() { Name = tagDTO.Name };
                         _context.Tags.Add(tagRecipe);
                     }
                     existingRecipe.Tags.Add(tagRecipe);
@@ -129,9 +129,9 @@ public class RecipeService : IRecipeService
         return measurements.Select(ToMeasurementDTO).ToArray();
     }
 
-           private Data.Models.Recipe ToRecipe(RecipeDetails recipeDTO)
+           private Recipe ToRecipe(RecipeDetails recipeDTO)
         {
-            var recipe = new Data.Models.Recipe
+            var recipe = new Recipe
             {
                 Id = recipeDTO.Id,
                 Title = recipeDTO.Title,
@@ -150,7 +150,7 @@ public class RecipeService : IRecipeService
                 if (existingTag == null)
                 {
                     // The tag doesn't exist, so create it
-                    existingTag = new Data.Models.Tag { Name = tagDTO.Name };
+                    existingTag = new Tag { Name = tagDTO.Name };
                     _context.Tags.Add(existingTag);
                 }
 
@@ -162,7 +162,7 @@ public class RecipeService : IRecipeService
 
 
 
-        private RecipeDetails ToRecipeDetailsDTO(Data.Models.Recipe recipe)
+        private RecipeDetails ToRecipeDetailsDTO(Recipe recipe)
         {
             // make sure the related lists and references are loaded
             _context.Entry(recipe).Collection(r => r.Ingredients).Load();
@@ -180,11 +180,11 @@ public class RecipeService : IRecipeService
                 CookingTime = recipe.CookingTime,
                 Ingredients = recipe.Ingredients.Select(ToIngredientDTO).ToList(),
                 Tags = recipe.Tags.Select(rt => new TagInfo() { Id = rt.Id, Name = rt.Name}).ToList(),
-                Images = recipe.Images.Select(rt => new RecipeFriends.Shared.DTO.ImageInfo() { Id = rt.Id, Title = rt.Title, Name = rt.Name }).ToList()
+                Images = recipe.Images.Select(rt => new ImageInfo() { Id = rt.Id, Title = rt.Title, Name = rt.Name }).ToList()
             };
         }
 
-        private RecipeInfo ToRecipeInfoDTO(Data.Models.Recipe recipe)
+        private RecipeInfo ToRecipeInfoDTO(Recipe recipe)
         {
             // make sure the related lists and references are loaded
             _context.Entry(recipe).Collection(r => r.Tags).Load();
@@ -199,7 +199,7 @@ public class RecipeService : IRecipeService
             };
         }
 
-        private IngredientDetails ToIngredientDTO(Data.Models.Ingredient ingredient)
+        private IngredientDetails ToIngredientDTO(Ingredient ingredient)
         {
             _context.Entry(ingredient).Reference(r => r.MeasurementNew).Load();
             return new IngredientDetails
@@ -212,21 +212,21 @@ public class RecipeService : IRecipeService
             };
         }
 
-        private TagInfo ToTagDTO(Data.Models.Tag tag){
+        private TagInfo ToTagDTO(Tag tag){
             return new TagInfo{
                 Id = tag.Id,
                 Name = tag.Name
             };
         }
 
-        private CategoryInfo ToCategoryDTO(Data.Models.Category category){
+        private CategoryInfo ToCategoryDTO(Category category){
             return new CategoryInfo{
                 Id = category.CategoryId,
                 Name = category.Name
             };
         }
 
-        private MeasurementInfo ToMeasurementDTO(Data.Models.Measurement measurement){
+        private MeasurementInfo ToMeasurementDTO(Measurement measurement){
             return new MeasurementInfo{
                 Id = measurement.MeasurementId,
                 Name = measurement.Name

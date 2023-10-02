@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net8.0-maccatalyst</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RecipeFriends.DTO\RecipeFriends.DTO.csproj" />
+    <ProjectReference Include="..\RecipeFriends.Shared.DTO\RecipeFriends.Shared.DTO.csproj" />
   </ItemGroup>
 
 </Project>

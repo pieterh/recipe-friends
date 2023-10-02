@@ -10,9 +10,9 @@ using NLog;
 using NLog.Config;
 using NLog.Extensions.Logging;
 
-using RecipeFriends.Components.Layout;
-using RecipeFriends.Data;
+// using RecipeFriends.Components.Layout;
 using RecipeFriends.Services;
+using RecipeFriends.Shared.Data;
 
 namespace RecipeFriends;
 
@@ -20,7 +20,7 @@ public static class MauiProgram
 {
 	public static MauiApp CreateMauiApp()
 	{
-		var t = new MainLayout();
+		// var t = new MainLayout();
 		Console.WriteLine("OS Version: {0}", Environment.OSVersion.ToString());
 
 		Console.WriteLine("Version: {0}", Environment.Version.ToString());
@@ -28,7 +28,12 @@ public static class MauiProgram
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
-			.UseMauiCommunityToolkit()
+			.UseMauiCommunityToolkit(options =>
+				{
+					options.SetShouldSuppressExceptionsInConverters(false);
+					options.SetShouldSuppressExceptionsInBehaviors(false);
+					options.SetShouldSuppressExceptionsInAnimations(false);
+				})
 			.ConfigureFonts(fonts =>
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -66,7 +71,7 @@ public static class MauiProgram
 		builder.Services.AddSingleton<RecipeFriendsContext>();
 		builder.Services.AddSingleton<IRecipeService, RecipeService > ();
 		builder.Services.AddSingleton<IDocumentService, DocumentService > ();
-		builder.Services.AddSingleton<WeatherForecastService>();
+		builder.Services.AddSingleton<Data.WeatherForecastService>();
 
 		bool isOSX = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX);
 

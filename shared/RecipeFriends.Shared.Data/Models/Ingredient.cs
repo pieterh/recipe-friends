@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using RecipeFriends.Shared;
 
-namespace RecipeFriends.Data.Models;
+namespace RecipeFriends.Shared.Data.Models;
 
 [Table("Ingredient")]
 public class Ingredient

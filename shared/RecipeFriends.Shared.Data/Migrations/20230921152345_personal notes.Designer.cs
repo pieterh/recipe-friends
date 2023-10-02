@@ -4,15 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using RecipeFriends.Data;
+using RecipeFriends.Shared.Data;
 
 #nullable disable
 
-namespace RecipeFriends.Data.Migrations
+namespace RecipeFriends.Shared.Data.Migrations
 {
     [DbContext(typeof(RecipeFriendsContext))]
-    [Migration("20230921151745_image support")]
-    partial class imagesupport
+    [Migration("20230921152345_personal notes")]
+    partial class personalnotes
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

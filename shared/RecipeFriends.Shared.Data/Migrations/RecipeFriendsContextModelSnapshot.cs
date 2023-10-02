@@ -2,20 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using RecipeFriends.Data;
+using RecipeFriends.Shared.Data;
 
 #nullable disable
 
-namespace RecipeFriends.Data.Migrations
+namespace RecipeFriends.Shared.Data.Migrations
 {
     [DbContext(typeof(RecipeFriendsContext))]
-    [Migration("20231001141743_AddCategoryAndMeasurementModel")]
-    partial class AddCategoryAndMeasurementModel
+    partial class RecipeFriendsContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0-rc.1.23419.6");
@@ -101,9 +98,6 @@ namespace RecipeFriends.Data.Migrations
 
                     b.Property<double>("Amount")
                         .HasColumnType("REAL");
-
-                    b.Property<int>("Measurement")
-                        .HasColumnType("INTEGER");
 
                     b.Property<int>("MeasurementId")
                         .HasColumnType("INTEGER");
@@ -197,9 +191,6 @@ namespace RecipeFriends.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Catagory")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("CategoryId")

@@ -1,4 +1,4 @@
-namespace RecipeFriends.Data.Models;
+namespace RecipeFriends.Shared.Data.Models;
 
 public enum EntityStatus
 {

@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace RecipeFriends.Data.Migrations
+namespace RecipeFriends.Shared.Data.Migrations
 {
     /// <inheritdoc />
     public partial class personalnotes : Migration

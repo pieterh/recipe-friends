@@ -4,15 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using RecipeFriends.Data;
+using RecipeFriends.Shared.Data;
 
 #nullable disable
 
-namespace RecipeFriends.Data.Migrations
+namespace RecipeFriends.Shared.Data.Migrations
 {
     [DbContext(typeof(RecipeFriendsContext))]
-    [Migration("20231001151921_RemoveUnusedEnums")]
-    partial class RemoveUnusedEnums
+    [Migration("20231001141743_AddCategoryAndMeasurementModel")]
+    partial class AddCategoryAndMeasurementModel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -101,6 +101,9 @@ namespace RecipeFriends.Data.Migrations
 
                     b.Property<double>("Amount")
                         .HasColumnType("REAL");
+
+                    b.Property<int>("Measurement")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("MeasurementId")
                         .HasColumnType("INTEGER");
@@ -194,6 +197,9 @@ namespace RecipeFriends.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Catagory")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("CategoryId")

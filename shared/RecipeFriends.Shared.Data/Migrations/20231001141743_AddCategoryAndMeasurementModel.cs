@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
-using RecipeFriends.Data.Models;
+using RecipeFriends.Shared.Data.Models;
 #nullable disable
 
-namespace RecipeFriends.Data.Migrations
+namespace RecipeFriends.Shared.Data.Migrations
 {
     /// <inheritdoc />
     public partial class AddCategoryAndMeasurementModel : Migration

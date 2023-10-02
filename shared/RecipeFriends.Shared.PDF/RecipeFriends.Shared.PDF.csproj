@@ -2,12 +2,13 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RecipeFriends.DTO\RecipeFriends.DTO.csproj" />
+    <ProjectReference Include="..\RecipeFriends.Shared.DTO\RecipeFriends.Shared.DTO.csproj" />
   </ItemGroup>
 
   <ItemGroup>

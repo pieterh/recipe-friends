@@ -74,10 +74,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\shared\RecipeFriends.DTO\RecipeFriends.DTO.csproj" />
-        <ProjectReference Include="..\..\shared\RecipeFriends.Data\RecipeFriends.Data.csproj" />
-        <ProjectReference Include="..\..\shared\RecipeFriends.Shared.Markdown\RecipeFriends.Shared.Markdown.csproj" />
-        <ProjectReference Include="..\..\shared\RecipeFriends.Shared.PDF\RecipeFriends.Shared.PDF.csproj" />
+      <ProjectReference Include="..\..\shared\RecipeFriends.Shared.Data\RecipeFriends.Shared.Data.csproj" />
+      <ProjectReference Include="..\..\shared\RecipeFriends.Shared.DTO\RecipeFriends.Shared.DTO.csproj" />
+      <ProjectReference Include="..\..\shared\RecipeFriends.Shared.PDF\RecipeFriends.Shared.PDF.csproj" />
     </ItemGroup>
 
     <!-- Build Properties must be defined within these property groups to ensure successful publishing

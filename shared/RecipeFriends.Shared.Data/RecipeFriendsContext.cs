@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-using RecipeFriends.Data.Models;
+using RecipeFriends.Shared.Data.Models;
 
-namespace RecipeFriends.Data;
+namespace RecipeFriends.Shared.Data;
 
 [SuppressMessage("SonarLint", "S101", Justification = "Ignored intentionally")]
 public class RecipeFriendsContext : DbContext

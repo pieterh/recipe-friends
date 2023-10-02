@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace RecipeFriends.Data.Models;
+namespace RecipeFriends.Shared.Data.Models;
 
     [Table("MeasurementTranslations")]
     public class MeasurementTranslation
