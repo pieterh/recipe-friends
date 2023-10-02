@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RecipeFriends.Shared.Data.Models;
 
-[Table("Image")]
+[Table("Images")]
 public class ImageData
 {
     [Key]

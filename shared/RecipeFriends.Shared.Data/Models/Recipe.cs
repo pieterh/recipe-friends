@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RecipeFriends.Shared.Data.Models;
 
-[Table("Recipe")]
+[Table("Recipes")]
 public class Recipe
 {
     [Key]
