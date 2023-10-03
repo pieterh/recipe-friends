@@ -5,11 +5,13 @@ using QuestPDF.Fluent;
 
 namespace RecipeFriends.Shared.PDF.Converters;
 
-    enum ElementType {Bold, Italic};
-    
-public class ParagraphBlockConverter{
+enum ElementType { Bold, Italic };
+
+public class ParagraphBlockConverter
+{
     private ParagraphBlock paragraphBlock;
-    public ParagraphBlockConverter(ParagraphBlock pb){
+    public ParagraphBlockConverter(ParagraphBlock pb)
+    {
         paragraphBlock = pb;
     }
 
@@ -17,11 +19,16 @@ public class ParagraphBlockConverter{
     {
         // text.DefaultTextStyle(x => x.FontSize(ConvertRecipeToPDF.FontSizeBody));   
         // text.DefaultTextStyle(x => x.FontFamily(ConvertRecipeToPDF.FontFamilyBody));     
-        foreach(var item in paragraphBlock.Inline){
+        foreach (var item in paragraphBlock.Inline)
+        {
+            // if (item is LeafInline l){
+
+            // }else
             if (item is LiteralInline literal)
             {
                 ParagraphBlockConverter.AddLiteral(text, literal);
-            }else
+            }
+            else
             if (item is EmphasisInline emphasis)
             {
                 AddEmphasis(text, emphasis);
@@ -34,10 +41,10 @@ public class ParagraphBlockConverter{
     {
         var text = literalInline.Content.ToString();
         td.Span(text);
-//          .FontSize(ConvertRecipeToPDF.FontSizeBody)
-//          .FontFamily(ConvertRecipeToPDF.FontFamilyBody);
+        //          .FontSize(ConvertRecipeToPDF.FontSizeBody)
+        //          .FontFamily(ConvertRecipeToPDF.FontFamilyBody);
     }
-    
+
     private static bool AddEmphasis(TextDescriptor td, EmphasisInline emph)
     {
         if ((emph.DelimiterChar == '*' || emph.DelimiterChar == '_') && emph.DelimiterCount == 2) return AddExtendedEmphasis(td, emph, ElementType.Bold);
@@ -60,11 +67,12 @@ public class ParagraphBlockConverter{
             if (item is LiteralInline literalInline)
             {
                 var text = literalInline.Content.ToString();
-                switch(elementType){
+                switch (elementType)
+                {
                     case ElementType.Bold: td.Span(text).Bold(); break;
                     case ElementType.Italic: td.Span(text).Italic(); break;
-                }                
-                
+                }
+
             }
         }
         return true;
@@ -73,22 +81,28 @@ public class ParagraphBlockConverter{
     private static string GetInlinePlainText(Inline i)
     {
         var res = new StringBuilder();
-
-        if (i is LiteralInline)
-        {
-            res.Append((i as LiteralInline).Content);
-        }
-        if (i is CodeInline)
-        {
-            res.Append((i as CodeInline).Content);
-        }
-        if (i is ContainerInline)
-        {
-            foreach (var ii in i as ContainerInline)
-            {
-                res.Append(GetInlinePlainText(ii));
-            }
-        }
+        PopulateInlinePlainText(i, res);
         return res.ToString();
+    }
+
+    private static void PopulateInlinePlainText(Inline i, StringBuilder res)
+    {
+        switch (i)
+        {
+            case LiteralInline literal:
+                res.Append(literal.Content);
+                break;
+
+            case CodeInline code:
+                res.Append(code.Content);
+                break;
+
+            case ContainerInline container:
+                foreach (var ii in container)
+                {
+                    PopulateInlinePlainText(ii, res);
+                }
+                break;
+        }
     }
 }
