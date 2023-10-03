@@ -1,8 +1,8 @@
 ﻿using System.Xml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.LifecycleEvents;
 
-using MudBlazor;
 using MudBlazor.Services;
 using CommunityToolkit.Maui;
 
@@ -10,7 +10,6 @@ using NLog;
 using NLog.Config;
 using NLog.Extensions.Logging;
 
-// using RecipeFriends.Components.Layout;
 using RecipeFriends.Services;
 using RecipeFriends.Shared.Data;
 
@@ -18,8 +17,13 @@ namespace RecipeFriends;
 
 public static class MauiProgram
 {
+	private static IServiceProvider services;
 	public static MauiApp CreateMauiApp()
 	{
+		LogManager.Configuration = new LoggingConfiguration();
+		var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
+		LogManager.Configuration.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, logconsole);
+
 		// var t = new MainLayout();
 		Console.WriteLine("OS Version: {0}", Environment.OSVersion.ToString());
 
@@ -28,6 +32,23 @@ public static class MauiProgram
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
+			.ConfigureLifecycleEvents(AppLifecycle =>
+			{
+				var logger = NLog.LogManager.GetCurrentClassLogger();
+				logger.Info("ConfigureLifecycleEvents");
+#if MACCATALYST
+				AppLifecycle.AddiOS(ios => ios.DidEnterBackground((a) => {
+					var logger = NLog.LogManager.GetCurrentClassLogger();
+					logger.Error("DidEnterBackground");
+					Console.WriteLine("DidEnterBackground");
+				}));
+				AppLifecycle.AddiOS(ios => ios.WillTerminate((a) => {
+					var logger = NLog.LogManager.GetCurrentClassLogger();
+					logger.Error("WillTerminate");
+					Console.WriteLine("WillTerminate");
+				}));
+#endif
+			})
 			.UseMauiCommunityToolkit(options =>
 				{
 					options.SetShouldSuppressExceptionsInConverters(false);
@@ -48,29 +69,29 @@ public static class MauiProgram
 #endif
 
 		var assembly = typeof(MauiProgram).Assembly;
-		using var stream =  FileSystem.OpenAppPackageFileAsync("NLog.txt").GetAwaiter().GetResult();
-    	LogManager.Configuration = new XmlLoggingConfiguration(XmlReader.Create(stream), null);
+		using var stream = FileSystem.OpenAppPackageFileAsync("NLog.txt").GetAwaiter().GetResult();
+		LogManager.Configuration = new XmlLoggingConfiguration(XmlReader.Create(stream), null);
 
 		var logger = NLog.LogManager.GetCurrentClassLogger();
 
-        AppDomain.CurrentDomain.UnhandledException += (sender, args) => 
-        {
+		AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+		{
 			Console.WriteLine("sadfas");
 			var logger = NLog.LogManager.GetCurrentClassLogger();
 			logger.Error($"In FirstChanceException {Environment.NewLine} {args.ExceptionObject}");
 			logger.Error(args.ExceptionObject as Exception, $"-");
-        };
-        AppDomain.CurrentDomain.FirstChanceException += (sender, args) =>
-        {
+		};
+		AppDomain.CurrentDomain.FirstChanceException += (sender, args) =>
+		{
 			var logger = NLog.LogManager.GetCurrentClassLogger();
 			logger.Error(args.Exception, $"In FirstChanceException {Environment.NewLine}");
-        };
+		};
 
 		builder.Services.AddMudServices();
 
-		builder.Services.AddSingleton<RecipeFriendsContext>();
-		builder.Services.AddSingleton<IRecipeService, RecipeService > ();
-		builder.Services.AddSingleton<IDocumentService, DocumentService > ();
+		builder.Services.AddDbContext<RecipeFriendsDbContext>();
+		builder.Services.AddSingleton<IRecipeService, RecipeService>();
+		builder.Services.AddSingleton<IDocumentService, DocumentService>();
 		builder.Services.AddSingleton<Data.WeatherForecastService>();
 
 		bool isOSX = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX);
@@ -84,10 +105,10 @@ public static class MauiProgram
 
 		using (var scope = app.Services.CreateScope())
 		{
- 			var services = scope.ServiceProvider;
+			services = scope.ServiceProvider;
 			try
 			{
-				var context = services.GetRequiredService<RecipeFriendsContext>();
+				var context = services.GetRequiredService<RecipeFriendsDbContext>();
 				context.Database.Migrate(); // Apply migrations
 			}
 			catch (Exception ex)
@@ -99,6 +120,6 @@ public static class MauiProgram
 		return app;
 	}
 
-        
+
 }
 

@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace RecipeFriends.Shared.DTO;
 
@@ -14,7 +13,6 @@ public class IngredientDetails
     [Range(1, 1000)]
     public required double Amount { get; set; }
 
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public required MeasurementInfo Measurement { get; set; }
 
     public required int Order { get; set; }

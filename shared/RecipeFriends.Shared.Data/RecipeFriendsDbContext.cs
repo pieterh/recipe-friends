@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection.Emit;
+﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -12,7 +8,7 @@ using RecipeFriends.Shared.Data.Models;
 namespace RecipeFriends.Shared.Data;
 
 [SuppressMessage("SonarLint", "S101", Justification = "Ignored intentionally")]
-public class RecipeFriendsContext : DbContext
+public class RecipeFriendsDbContext : DbContext
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
     public static string DbPath { get; set; } = default!;
@@ -28,14 +24,12 @@ public class RecipeFriendsContext : DbContext
 
     public DbSet<CategoryTranslation> CategoryTranslations { get; set; } = default!;
 
-    public RecipeFriendsContext()
+    public RecipeFriendsDbContext()
     {
         if (string.IsNullOrWhiteSpace(DbPath))
         {
             var folder = AppDomain.CurrentDomain.BaseDirectory;
-            //DbPath = System.IO.Path.Join(folder, "recipefriends.db");
             DbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "recipefriends.db");
-            Console.WriteLine(DbPath);
             Logger.Warn("No name for database file given. Defaults to database file {DbPath}", DbPath);
         }
         else
@@ -51,8 +45,6 @@ public class RecipeFriendsContext : DbContext
 
         ArgumentNullException.ThrowIfNull(modelBuilder);
 
-
-
         // create instances of the converters beeing used
         var dateTimeConverter = new DateTimeToUtcConverter();
         var nullableDateTimeConverter = new NullableDateTimeToUtcConverter();
@@ -64,15 +56,6 @@ public class RecipeFriendsContext : DbContext
         modelBuilder.Entity<Category>()
             .Property(e => e.Status)
             .HasConversion<int>();
-
-        // foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        // {
-        //     foreach (var property in entityType.GetProperties()){
-        //         if (property.ClrType == typeof (EntityStatus))
-        //         property.SetValueConverter()
-        //             property.HasConversion<string>();
-        //     }
-        // }
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {

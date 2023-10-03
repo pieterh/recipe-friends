@@ -10,7 +10,7 @@ using RecipeFriends.Shared.Data;
 
 namespace RecipeFriends.Shared.Data.Migrations
 {
-    [DbContext(typeof(RecipeFriendsContext))]
+    [DbContext(typeof(RecipeFriendsDbContext))]
     [Migration("20230907203751_InitialCreate")]
     partial class InitialCreate
     {

@@ -52,6 +52,33 @@
                             <MarkdownEditor MaxHeight="225px" @bind-Value="@recipeDetails.Description" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })'/>                        
                         </MudPaper>
                     </MudItem>
+                    <MudInputLabel>Ingredients</MudInputLabel>
+                    <MudItem xs="12">
+                        <MudPaper Height="329px" xs="12">                       
+                            <MudDataGrid MaxHeight="225px" T="IngredientDetails" Items="@recipeDetails.Ingredients" 
+                                         EditMode="DataGridEditMode.Cell" EditTrigger="DataGridEditTrigger.OnRowClick"
+                                         ReadOnly="false"
+                                         Bordered="true" Dense="true">
+                                <ToolBarContent>
+                                    <MudButton OnClick="() => AddIngredient()" Color="@Color.Success" Class="add-item-btn">Add Item</MudButton>                                    
+                                </ToolBarContent>                                         
+                                <Columns>
+                                    <PropertyColumn Property="x => x.Order" Title="Order" SortBy="@_sortBy" />
+                                    <PropertyColumn Property="x => x.Name" Title="Name" />
+                                    <PropertyColumn Property="x => x.Amount" Title="Amount"  />
+                                    <PropertyColumn Property="x => x.Measurement" Title="Measurement" >
+                                        <EditTemplate Context="ingredient">
+                                            <MudSelect T="MeasurementInfo" @bind-Value="ingredient.Item.Measurement" Margin="@Margin.Dense">
+                                                @foreach(var measurement in allMeasurements){
+                                                    <MudSelectItem Value="measurement" />
+                                                }                                                        
+                                            </MudSelect> 
+                                        </EditTemplate>
+                                    </PropertyColumn>    
+                                </Columns>                       
+                            </MudDataGrid>                       
+                        </MudPaper>
+                    </MudItem>
                     <MudInputLabel>Directions</MudInputLabel>
                     <MudItem xs="12">
                         <MudPaper Height="329px" xs="12">                       
@@ -89,6 +116,7 @@
     private RecipeDetails? recipeDetails;
     private List<TagInfo> allTags;
     private List<CategoryInfo> allCategories;
+    private List<MeasurementInfo> allMeasurements;
     
 
     private string saveStatusMessage = string.Empty;
@@ -97,6 +125,7 @@
     {        
         allTags = (await RecipeService.GetTagsAsync(CancellationToken.None)) .ToList();
         allCategories = (await RecipeService.GetCategoriesAsync(CancellationToken.None)).ToList();
+        allMeasurements = (await RecipeService.GetMeasurementsAsync(CancellationToken.None)).ToList();
 
         if (Id > 0) {
             recipeDetails = await RecipeService.GetRecipeDetailsAsync(Id, CancellationToken.None);
@@ -104,6 +133,11 @@
             recipeDetails = new(){Title ="", ShortDescription ="", Description = "", Directions = "", Category = allCategories.First(), PreparationTime = TimeOnly.MinValue, CookingTime = TimeOnly.MinValue };
         }
     }
+// custom sort by name length
+    private Func<IngredientDetails, object> _sortBy => x =>
+    {
+        return x.Order;
+    };
 
     private async Task HandleValidSubmit()
     {
@@ -125,6 +159,21 @@
         }
     }
 
+    private void AddIngredient()
+    {
+        var highestOrder = 0;
+        foreach(var i in recipeDetails.Ingredients){
+            if (i.Order > highestOrder)
+                highestOrder = i.Order;
+        }
+        var newIngredient = new IngredientDetails() {
+            Name = string.Empty, 
+            Amount = 0, 
+            Order = highestOrder + 1, 
+            Measurement = null
+            };
+        recipeDetails.Ingredients.Add(newIngredient);
+    }
     private void Cancel()
     {
         NavigationManager.NavigateTo("/recipe/list");

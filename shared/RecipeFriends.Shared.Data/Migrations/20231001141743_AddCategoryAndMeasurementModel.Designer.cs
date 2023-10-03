@@ -10,7 +10,7 @@ using RecipeFriends.Shared.Data;
 
 namespace RecipeFriends.Shared.Data.Migrations
 {
-    [DbContext(typeof(RecipeFriendsContext))]
+    [DbContext(typeof(RecipeFriendsDbContext))]
     [Migration("20231001141743_AddCategoryAndMeasurementModel")]
     partial class AddCategoryAndMeasurementModel
     {

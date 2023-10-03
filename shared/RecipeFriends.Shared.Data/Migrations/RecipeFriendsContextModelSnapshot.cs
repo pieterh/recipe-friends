@@ -9,7 +9,7 @@ using RecipeFriends.Shared.Data;
 
 namespace RecipeFriends.Shared.Data.Migrations
 {
-    [DbContext(typeof(RecipeFriendsContext))]
+    [DbContext(typeof(RecipeFriendsDbContext))]
     partial class RecipeFriendsContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
