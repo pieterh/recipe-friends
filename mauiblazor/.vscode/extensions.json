@@ -3,6 +3,7 @@
         "ms-dotnettools.csharp",
         "ms-dotnettools.csdevkit",
         "ms-dotnettools.dotnet-maui",
-        "fullstackspider.visual-nuget"
+        "fullstackspider.visual-nuget",
+        "esbenp.prettier-vscode"
     ]
 }

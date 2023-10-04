@@ -1,16 +1,6 @@
 {
 	"version": "2.0.0",
 	"tasks": [
-		// {
-		// 	"type": "maui",
-		// 	"targetFramework": "net8.0-windows10.0.19041.0",
-		// 	"configuration": "Debug",
-		// 	"project": "${workspaceFolder}\\RecipeFriends\\RecipeFriends.csproj",
-		// 	"problemMatcher": [
-		// 		"$msCompile"
-		// 	],
-		// 	"label": "maui: Build"
-		// },
 		{
 			"type": "maui",
 			"targetFramework": "net8.0-maccatalyst",
@@ -20,6 +10,54 @@
 				"$msCompile"
 			],
 			"label": "maui: Build"
+		},
+		{
+			"type": "maui",
+			"targetFramework": "net8.0-maccatalyst",
+			"configuration": "Debug",
+			"project": "c:\\Repos\\github\\recipe-friends\\mauiblazor\\RecipeFriends\\RecipeFriends.csproj",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"label": "dotnet-meteor: Build"
+		},
+		{
+			"type": "maui",
+			"targetFramework": "net8.0-windows10.0.19041.0",
+			"configuration": "Debug",
+			"project": "c:\\Repos\\github\\recipe-friends\\mauiblazor\\RecipeFriends\\RecipeFriends.csproj",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"label": "maui: Build"
+		},
+		{
+			"type": "maui",
+			"targetFramework": "net8.0-windows10.0.19041.0",
+			"configuration": "Debug",
+			"project": "c:\\Repos\\github\\recipe-friends\\mauiblazor\\RecipeFriends\\RecipeFriends.csproj",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"label": "dotnet-meteor: Build"
+		},
+		{
+			"type": "maui",
+			"targetFramework": "net8.0-windows10.0.19041.0",
+			"configuration": "Debug",
+			"project": "C:\\Repos\\github\\recipe-friends\\mauiblazor\\RecipeFriends\\RecipeFriends.csproj",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"label": "maui: Build"
+		},
+		{
+			"type": "dotnet-meteor.task",
+			"target": "build",
+			"problemMatcher": [
+				"$dotnet-meteor.problemMatcher"
+			],
+			"label": "dotnet-meteor: Build"
 		}
 	]
 }

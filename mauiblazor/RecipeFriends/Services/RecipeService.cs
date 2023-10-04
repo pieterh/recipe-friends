@@ -22,154 +22,73 @@ public class RecipeService : IRecipeService
             return null;
         }
             ;
-        return ToRecipeDetailsDTO(recipe);
+        return MapToRecipeDetailsDTO(recipe);
     }
 
     public async Task<RecipeInfo[]> GetRecipesAsync(CancellationToken cancellationToken)
     {
         var l = await _context.Recipes.Include(r => r.Tags).ToListAsync();
-        var r = l.Select(ToRecipeInfoDTO).ToArray();
+        var r = l.Select(MapToRecipeInfoDTO).ToArray();
         return r;
     }
 
+
     public async Task<bool> SaveRecipeDetailsAsync(RecipeDetails recipeDTO, CancellationToken cancellationToken)
     {
-        if (recipeDTO.Id > 0)
+        using (var transaction = await _context.Database.BeginTransactionAsync(cancellationToken))
         {
-            var existingRecipe = await _context.Recipes.Include(r => r.Tags).FirstOrDefaultAsync(r => r.Id == recipeDTO.Id, cancellationToken: cancellationToken);
-
-            if (existingRecipe == null)
+            try
             {
-                return false;
-            }
-
-            // Update basic properties
-            existingRecipe.Title = recipeDTO.Title;
-            existingRecipe.CategoryId = recipeDTO.Category.Id;
-            existingRecipe.ShortDescription = recipeDTO.ShortDescription;
-            existingRecipe.Description = recipeDTO.Description;
-            existingRecipe.Directions = recipeDTO.Directions;
-            existingRecipe.PreparationTime = recipeDTO.PreparationTime;
-            existingRecipe.CookingTime = recipeDTO.CookingTime;
-
-            // Handle tags
-            // Identify tags that are no longer associated
-            var tagsToRemove = existingRecipe.Tags
-                                                .Where(rt => !recipeDTO.Tags.Any(t => t.Id == rt.Id))
-                                                .ToList();
-
-            foreach (var tagToRemove in tagsToRemove)
-            {
-                existingRecipe.Tags.Remove(tagToRemove);
-            }
-
-            // Add new tags
-            foreach (var tagDTO in recipeDTO.Tags)
-            {
-                // Check if the tag already exists in the database
-                if (!existingRecipe.Tags.Any(rt => rt.Id == tagDTO.Id))
+                if (recipeDTO.Id > 0)
                 {
-                    var tagRecipe = _context.Tags.FirstOrDefault((x) => x.Id == tagDTO.Id);
-                    if (tagRecipe == null)
-                    {
-                        tagRecipe = new Tag() { Name = tagDTO.Name };
-                        _context.Tags.Add(tagRecipe);
-                    }
-                    existingRecipe.Tags.Add(tagRecipe);
+                    if (!await UpdateRecipeAsync(recipeDTO, cancellationToken))
+                        return false;
+                }
+                else
+                {
+                    InsertNewRecipe(recipeDTO);
+                }
+                await _context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken); // Commit the transaction if all operations succeeded
+                return true;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                await transaction.RollbackAsync(cancellationToken); // Rollback any changes made during the transaction
+                if (!_context.Recipes.Any(e => e.Id == recipeDTO.Id))
+                {
+                    return false;
+                }
+                else
+                {
+                    throw;
                 }
             }
-
-            // Handle ingerdients
-            // Identify ingredients that are no longer associated
-            var ingredientsToRemove = existingRecipe.Ingredients
-                                                .Where(rt => !recipeDTO.Ingredients.Any(t => t.Id == rt.Id))
-                                                .ToList();
-            foreach (var ingredientToRemove in ingredientsToRemove)
+            catch (Exception)
             {
-                existingRecipe.Ingredients.Remove(ingredientToRemove);
-            }
-            // add new ingredients or update existing
-            foreach(var ingredientDTO in recipeDTO.Ingredients){
-                var ingredient = existingRecipe.Ingredients.FirstOrDefault(i => i.Id == ingredientDTO.Id);
-                if (ingredient == null){
-                    // add new ingredient
-                    ingredient = new Ingredient(){
-                        Order = ingredientDTO.Order,
-                        Name = ingredientDTO.Name,
-                        Amount = ingredientDTO.Amount,
-                        MeasurementId = ingredientDTO.Measurement.Id
-                    };
-                    existingRecipe.Ingredients.Add(ingredient);
-                }else{
-                    // update existing
-                    ingredient.Order = ingredientDTO.Order;
-                    ingredient.Name = ingredientDTO.Name;
-                    ingredient.Amount = ingredientDTO.Amount;
-                    ingredient.MeasurementId = ingredientDTO.Measurement.Id;                    
-                }
-
-            }
-
-        }
-        else
-        {
-            var newRecipe = new Recipe()
-            {
-                Title = recipeDTO.Title,
-                CategoryId = recipeDTO.Category.Id,
-                ShortDescription = recipeDTO.ShortDescription,
-                Description = recipeDTO.Description,
-                Directions = recipeDTO.Directions,
-                PreparationTime = recipeDTO.PreparationTime,
-                CookingTime = recipeDTO.CookingTime
-            };
-            _context.Add(newRecipe);
-        }
-
-        // Save changes
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            // This checks if the resource still exists in the database.
-            if (!_context.Recipes.Any(e => e.Id == recipeDTO.Id))
-            {
-                return false;
-            }
-            else
-            {
-                throw;
+                await transaction.RollbackAsync(cancellationToken); // Rollback for any other exception
+                throw; // Propagate the exception upwards
             }
         }
+    }
 
+    private async Task<bool> UpdateRecipeAsync(RecipeDetails recipeDTO, CancellationToken cancellationToken)
+    {
+        var existingRecipe = await _context.Recipes.Include(r => r.Tags).FirstOrDefaultAsync(r => r.Id == recipeDTO.Id, cancellationToken);
+
+        if (existingRecipe == null) return false;
+
+        MapRecipeDTOToRecipe(recipeDTO, existingRecipe);
+
+        UpdateRecipeTags(recipeDTO, existingRecipe);
+        UpdateRecipeIngredients(recipeDTO, existingRecipe);
         return true;
     }
 
-    public async Task<TagInfo[]> GetTagsAsync(CancellationToken cancellationToken)
+    private void InsertNewRecipe(RecipeDetails recipeDTO)
     {
-        var tags = await _context.Tags.ToListAsync(cancellationToken: cancellationToken);
-        return tags.Select(ToTagDTO).ToArray();
-    }
-
-    public async Task<CategoryInfo[]> GetCategoriesAsync(CancellationToken cancellationToken)
-    {
-        var categories = await _context.Catagories.Where(c => c.Status == EntityStatus.Active).ToListAsync(cancellationToken: cancellationToken);
-        return categories.Select(ToCategoryDTO).ToArray();
-    }
-
-    public async Task<MeasurementInfo[]> GetMeasurementsAsync(CancellationToken cancellationToken)
-    {
-        var measurements = await _context.Measurements.ToListAsync(cancellationToken: cancellationToken);
-        return measurements.Select(ToMeasurementDTO).ToArray();
-    }
-
-    private Recipe ToRecipe(RecipeDetails recipeDTO)
-    {
-        var recipe = new Recipe
+        var newRecipe = new Recipe()
         {
-            Id = recipeDTO.Id,
             Title = recipeDTO.Title,
             CategoryId = recipeDTO.Category.Id,
             ShortDescription = recipeDTO.ShortDescription,
@@ -178,27 +97,217 @@ public class RecipeService : IRecipeService
             PreparationTime = recipeDTO.PreparationTime,
             CookingTime = recipeDTO.CookingTime
         };
+        _context.Recipes.Add(newRecipe);
+        UpdateRecipeTags(recipeDTO, newRecipe);
+        UpdateRecipeIngredients(recipeDTO, newRecipe);
+    }
 
-        foreach (var tagDTO in recipeDTO.Tags)
+    private void UpdateRecipeTags(RecipeDetails recipeDTO, Recipe existingRecipe)
+    {
+        // Handle tags
+        // Identify tags that are no longer associated
+        var tagsToRemove = existingRecipe.Tags
+                                            .Where(rt => !recipeDTO.Tags.Any(t => t.Id == rt.Id))
+                                            .ToList();
+
+        foreach (var tagToRemove in tagsToRemove)
         {
-            // Check if the tag already exists in the database                
-            var existingTag = _context.Tags.FirstOrDefault((x) => x.Id == tagDTO.Id);
-            if (existingTag == null)
-            {
-                // The tag doesn't exist, so create it
-                existingTag = new Tag { Name = tagDTO.Name };
-                _context.Tags.Add(existingTag);
-            }
-
-            recipe.Tags.Add(existingTag);
+            existingRecipe.Tags.Remove(tagToRemove);
         }
 
-        return recipe;
+        // Add new tags
+        foreach (var tagDTO in recipeDTO.Tags)
+        {
+            // Check if the tag already exists in the database
+            if (!existingRecipe.Tags.Any(rt => rt.Id == tagDTO.Id))
+            {
+                var tagRecipe = _context.Tags.FirstOrDefault((x) => x.Id == tagDTO.Id);
+                if (tagRecipe == null)
+                {
+                    tagRecipe = new Tag() { Name = tagDTO.Name };
+                    _context.Tags.Add(tagRecipe);
+                }
+                existingRecipe.Tags.Add(tagRecipe);
+            }
+        }
+    }
+
+    private void UpdateRecipeIngredients(RecipeDetails recipeDTO, Recipe existingRecipe)
+    {
+        // Handle ingerdients
+        // Identify ingredients that are no longer associated
+        var ingredientsToRemove = existingRecipe.Ingredients
+                                            .Where(rt => !recipeDTO.Ingredients.Any(t => t.Id == rt.Id))
+                                            .ToList();
+        foreach (var ingredientToRemove in ingredientsToRemove)
+        {
+            existingRecipe.Ingredients.Remove(ingredientToRemove);
+        }
+        // add new ingredients or update existing
+        foreach(var ingredientDTO in recipeDTO.Ingredients){
+            var ingredient = existingRecipe.Ingredients.FirstOrDefault(i => i.Id == ingredientDTO.Id);
+            if (ingredient == null){
+                // add new ingredient
+                ingredient = new Ingredient(){
+                    Order = ingredientDTO.Order,
+                    Name = ingredientDTO.Name,
+                    Amount = ingredientDTO.Amount,
+                    MeasurementId = ingredientDTO.Measurement.Id
+                };
+                existingRecipe.Ingredients.Add(ingredient);
+            }else{
+                // update existing
+                ingredient.Order = ingredientDTO.Order;
+                ingredient.Name = ingredientDTO.Name;
+                ingredient.Amount = ingredientDTO.Amount;
+                ingredient.MeasurementId = ingredientDTO.Measurement.Id;                    
+            }
+
+        }
     }
 
 
 
-    private RecipeDetails ToRecipeDetailsDTO(Recipe recipe)
+
+    // public async Task<bool> SaveRecipeDetailsAsync(RecipeDetails recipeDTO, CancellationToken cancellationToken)
+    // {
+    //     if (recipeDTO.Id > 0)
+    //     {
+    //         var existingRecipe = await _context.Recipes.Include(r => r.Tags).FirstOrDefaultAsync(r => r.Id == recipeDTO.Id, cancellationToken: cancellationToken);
+
+    //         if (existingRecipe == null)
+    //         {
+    //             return false;
+    //         }
+
+    //         // Update basic properties
+    //         existingRecipe.Title = recipeDTO.Title;
+    //         existingRecipe.CategoryId = recipeDTO.Category.Id;
+    //         existingRecipe.ShortDescription = recipeDTO.ShortDescription;
+    //         existingRecipe.Description = recipeDTO.Description;
+    //         existingRecipe.Directions = recipeDTO.Directions;
+    //         existingRecipe.PreparationTime = recipeDTO.PreparationTime;
+    //         existingRecipe.CookingTime = recipeDTO.CookingTime;
+
+    //         // Handle tags
+    //         // Identify tags that are no longer associated
+    //         var tagsToRemove = existingRecipe.Tags
+    //                                             .Where(rt => !recipeDTO.Tags.Any(t => t.Id == rt.Id))
+    //                                             .ToList();
+
+    //         foreach (var tagToRemove in tagsToRemove)
+    //         {
+    //             existingRecipe.Tags.Remove(tagToRemove);
+    //         }
+
+    //         // Add new tags
+    //         foreach (var tagDTO in recipeDTO.Tags)
+    //         {
+    //             // Check if the tag already exists in the database
+    //             if (!existingRecipe.Tags.Any(rt => rt.Id == tagDTO.Id))
+    //             {
+    //                 var tagRecipe = _context.Tags.FirstOrDefault((x) => x.Id == tagDTO.Id);
+    //                 if (tagRecipe == null)
+    //                 {
+    //                     tagRecipe = new Tag() { Name = tagDTO.Name };
+    //                     _context.Tags.Add(tagRecipe);
+    //                 }
+    //                 existingRecipe.Tags.Add(tagRecipe);
+    //             }
+    //         }
+
+    //         // Handle ingerdients
+    //         // Identify ingredients that are no longer associated
+    //         var ingredientsToRemove = existingRecipe.Ingredients
+    //                                             .Where(rt => !recipeDTO.Ingredients.Any(t => t.Id == rt.Id))
+    //                                             .ToList();
+    //         foreach (var ingredientToRemove in ingredientsToRemove)
+    //         {
+    //             existingRecipe.Ingredients.Remove(ingredientToRemove);
+    //         }
+    //         // add new ingredients or update existing
+    //         foreach(var ingredientDTO in recipeDTO.Ingredients){
+    //             var ingredient = existingRecipe.Ingredients.FirstOrDefault(i => i.Id == ingredientDTO.Id);
+    //             if (ingredient == null){
+    //                 // add new ingredient
+    //                 ingredient = new Ingredient(){
+    //                     Order = ingredientDTO.Order,
+    //                     Name = ingredientDTO.Name,
+    //                     Amount = ingredientDTO.Amount,
+    //                     MeasurementId = ingredientDTO.Measurement.Id
+    //                 };
+    //                 existingRecipe.Ingredients.Add(ingredient);
+    //             }else{
+    //                 // update existing
+    //                 ingredient.Order = ingredientDTO.Order;
+    //                 ingredient.Name = ingredientDTO.Name;
+    //                 ingredient.Amount = ingredientDTO.Amount;
+    //                 ingredient.MeasurementId = ingredientDTO.Measurement.Id;                    
+    //             }
+
+    //         }
+
+    //     }
+    //     else
+    //     {
+    //         var newRecipe = new Recipe()
+    //         {
+    //             Title = recipeDTO.Title,
+    //             CategoryId = recipeDTO.Category.Id,
+    //             ShortDescription = recipeDTO.ShortDescription,
+    //             Description = recipeDTO.Description,
+    //             Directions = recipeDTO.Directions,
+    //             PreparationTime = recipeDTO.PreparationTime,
+    //             CookingTime = recipeDTO.CookingTime
+    //         };
+    //         _context.Add(newRecipe);
+    //     }
+
+    //     // Save changes
+    //     try
+    //     {
+    //         await _context.SaveChangesAsync();
+    //     }
+    //     catch (DbUpdateConcurrencyException)
+    //     {
+    //         // This checks if the resource still exists in the database.
+    //         if (!_context.Recipes.Any(e => e.Id == recipeDTO.Id))
+    //         {
+    //             return false;
+    //         }
+    //         else
+    //         {
+    //             throw;
+    //         }
+    //     }
+
+    //     return true;
+    // }
+
+    public async Task<TagInfo[]> GetTagsAsync(CancellationToken cancellationToken)
+    {
+        var tags = await _context.Tags.ToListAsync(cancellationToken: cancellationToken);
+        return tags.Select(MapToTagDTO).ToArray();
+    }
+
+    public async Task<CategoryInfo[]> GetCategoriesAsync(CancellationToken cancellationToken)
+    {
+        var categories = await _context.Catagories.Where(c => c.Status == EntityStatus.Active).ToListAsync(cancellationToken: cancellationToken);
+        return categories.Select(MapToCategoryDTO).ToArray();
+    }
+
+    public async Task<MeasurementInfo[]> GetMeasurementsAsync(CancellationToken cancellationToken)
+    {
+        var measurements = await _context.Measurements.ToListAsync(cancellationToken: cancellationToken);
+        return measurements.Select(MapToMeasurementDTO).ToArray();
+    }
+
+    #region Map Model To DTO
+
+
+
+
+    private RecipeDetails MapToRecipeDetailsDTO(Recipe recipe)
     {
         // make sure the related lists and references are loaded
         _context.Entry(recipe).Collection(r => r.Ingredients).Load();
@@ -208,19 +317,19 @@ public class RecipeService : IRecipeService
         {
             Id = recipe.Id,
             Title = recipe.Title,
-            Category = ToCategoryDTO(recipe.Category),
+            Category = MapToCategoryDTO(recipe.Category),
             ShortDescription = recipe.ShortDescription,
             Description = recipe.Description,
             Directions = recipe.Directions,
             PreparationTime = recipe.PreparationTime,
             CookingTime = recipe.CookingTime,
-            Ingredients = recipe.Ingredients.Select(ToIngredientDTO).ToList(),
+            Ingredients = recipe.Ingredients.Select(MapToIngredientDTO).ToList(),
             Tags = recipe.Tags.Select(rt => new TagInfo() { Id = rt.Id, Name = rt.Name }).ToList(),
             Images = recipe.Images.Select(rt => new ImageInfo() { Id = rt.Id, Title = rt.Title, Name = rt.Name }).ToList()
         };
     }
 
-    private RecipeInfo ToRecipeInfoDTO(Recipe recipe)
+    private RecipeInfo MapToRecipeInfoDTO(Recipe recipe)
     {
         // make sure the related lists and references are loaded
         _context.Entry(recipe).Collection(r => r.Tags).Load();
@@ -235,7 +344,7 @@ public class RecipeService : IRecipeService
         };
     }
 
-    private IngredientDetails ToIngredientDTO(Ingredient ingredient)
+    private IngredientDetails MapToIngredientDTO(Ingredient ingredient)
     {
         _context.Entry(ingredient).Reference(r => r.MeasurementNew).Load();
         return new IngredientDetails
@@ -243,12 +352,12 @@ public class RecipeService : IRecipeService
             Id = ingredient.Id,
             Name = ingredient.Name,
             Amount = ingredient.Amount,
-            Measurement = ToMeasurementDTO(ingredient.MeasurementNew),
+            Measurement = MapToMeasurementDTO(ingredient.MeasurementNew),
             Order = ingredient.Order
         };
     }
 
-    private TagInfo ToTagDTO(Tag tag)
+    private TagInfo MapToTagDTO(Tag tag)
     {
         return new TagInfo
         {
@@ -257,7 +366,7 @@ public class RecipeService : IRecipeService
         };
     }
 
-    private CategoryInfo ToCategoryDTO(Category category)
+    private CategoryInfo MapToCategoryDTO(Category category)
     {
         return new CategoryInfo
         {
@@ -266,7 +375,7 @@ public class RecipeService : IRecipeService
         };
     }
 
-    private MeasurementInfo ToMeasurementDTO(Measurement measurement)
+    private MeasurementInfo MapToMeasurementDTO(Measurement measurement)
     {
         return new MeasurementInfo
         {
@@ -274,4 +383,49 @@ public class RecipeService : IRecipeService
             Name = measurement.Name
         };
     }
+    #endregion Map Model To DTO
+
+    #region Map DTO to Model
+    // private Recipe MapRecipeDTOToRecipe(RecipeDetails recipeDTO)
+    // {
+    //     var recipe = new Recipe
+    //     {
+    //         Id = recipeDTO.Id,
+    //         Title = recipeDTO.Title,
+    //         CategoryId = recipeDTO.Category.Id,
+    //         ShortDescription = recipeDTO.ShortDescription,
+    //         Description = recipeDTO.Description,
+    //         Directions = recipeDTO.Directions,
+    //         PreparationTime = recipeDTO.PreparationTime,
+    //         CookingTime = recipeDTO.CookingTime
+    //     };
+
+    //     foreach (var tagDTO in recipeDTO.Tags)
+    //     {
+    //         // Check if the tag already exists in the database                
+    //         var existingTag = _context.Tags.FirstOrDefault((x) => x.Id == tagDTO.Id);
+    //         if (existingTag == null)
+    //         {
+    //             // The tag doesn't exist, so create it
+    //             existingTag = new Tag { Name = tagDTO.Name };
+    //             _context.Tags.Add(existingTag);
+    //         }
+
+    //         recipe.Tags.Add(existingTag);
+    //     }
+
+    //     return recipe;
+    // }
+
+    private void MapRecipeDTOToRecipe(RecipeDetails recipeDTO, Recipe existingRecipe)
+    {
+        existingRecipe.Title = recipeDTO.Title;
+        existingRecipe.CategoryId = recipeDTO.Category.Id;
+        existingRecipe.ShortDescription = recipeDTO.ShortDescription;
+        existingRecipe.Description = recipeDTO.Description;
+        existingRecipe.Directions = recipeDTO.Directions;
+        existingRecipe.PreparationTime = recipeDTO.PreparationTime;
+        existingRecipe.CookingTime = recipeDTO.CookingTime;
+    }
+    #endregion  Map DTO to Model
 }
