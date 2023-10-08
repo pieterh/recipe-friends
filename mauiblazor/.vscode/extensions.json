@@ -4,6 +4,7 @@
         "ms-dotnettools.csdevkit",
         "ms-dotnettools.dotnet-maui",
         "fullstackspider.visual-nuget",
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+        "nromanov.dotnet-meteor"
     ]
 }
