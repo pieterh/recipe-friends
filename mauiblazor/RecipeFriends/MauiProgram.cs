@@ -23,6 +23,8 @@ public static class MauiProgram
 
 	public static MauiApp CreateMauiApp()
 	{
+		Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Recipe Friends"));
+
 		SetupNLog();
 		var logger = NLog.LogManager.GetCurrentClassLogger();
 		DotNetInfo.Info(logger);

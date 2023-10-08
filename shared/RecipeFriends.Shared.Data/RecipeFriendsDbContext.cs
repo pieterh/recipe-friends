@@ -29,7 +29,7 @@ public class RecipeFriendsDbContext : DbContext
         if (string.IsNullOrWhiteSpace(DbPath))
         {
             var folder = AppDomain.CurrentDomain.BaseDirectory;
-            DbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "recipe-friends", "recipefriends.db");
+            DbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Recipe Friends", "recipefriends.db");
             Logger.Warn("No name for database file given. Defaults to database file {DbPath}", DbPath);
         }
         else

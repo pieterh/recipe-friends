@@ -14,13 +14,15 @@ public static class DotNetInfo
             logger.Info("AppDomain:");
             logger.Info("BaseDirectory: {0}", AppDomain.CurrentDomain.BaseDirectory);
             var s = AppDomain.CurrentDomain.BaseDirectory;
-            var p = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+           
             logger.Info("Environment:");
             logger.Info("OS Platform: {0}", Environment.OSVersion.Platform);
             logger.Info("OS Version: {0}", Environment.OSVersion.ToString());
             logger.Info("Version: {0}", Environment.Version.ToString());
             logger.Info("Is64BitOperatingSystem: {0}", Environment.Is64BitOperatingSystem);
             logger.Info("Is64BitProcess: {0}", Environment.Is64BitProcess);
+            logger.Info("SpecialFolder - ApplicationData: {0}", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+            logger.Info("SpecialFolder - Personal: {0}", Environment.GetFolderPath(Environment.SpecialFolder.Personal));
             
 
             logger.Info("Runtime Information:");
