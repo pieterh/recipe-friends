@@ -23,7 +23,8 @@ public static class MauiProgram
 
 	public static MauiApp CreateMauiApp()
 	{
-		Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Recipe Friends"));
+		// Ensure that the directory for our documents does exist
+		Directory.CreateDirectory(RecipeFriendsService.DocumentsPath);
 
 		SetupNLog();
 		var logger = NLog.LogManager.GetCurrentClassLogger();
@@ -91,6 +92,7 @@ public static class MauiProgram
 
 		builder.Services.AddMudServices();
 
+		builder.Services.AddSingleton<IRecipeFriendsService, RecipeFriendsService>();
 		builder.Services.AddDbContext<RecipeFriendsDbContext>();
 		builder.Services.AddSingleton<IRecipeService, RecipeService>();
 		builder.Services.AddSingleton<IDocumentService, DocumentService>();
@@ -119,6 +121,12 @@ public static class MauiProgram
 
 	private static void SetupNLog()
 	{
+		// the logpath variable can now be used in the configuration
+		// with: ${gdc:item=logpath}
+		GlobalDiagnosticsContext.Set("logpath", Path.Combine(RecipeFriendsService.DocumentsPath, "logs"));
+
+		LogManager.AutoShutdown = true;
+		
 		LogManager.Setup().RegisterMauiLog();
 		// set first a failsafe configuration from program logic
 
@@ -130,7 +138,6 @@ public static class MauiProgram
 		LogManager.Setup().RegisterMauiLog().LoadConfiguration(c => c.ForLogger(NLog.LogLevel.Debug).WriteToMauiLog());
 		var l = LogManager.GetCurrentClassLogger();
 
-		l.Info("tst");
 		try
 		{
 			// try to load from external configuration file
@@ -153,6 +160,8 @@ public static class MauiProgram
 			var logger = NLog.LogManager.GetCurrentClassLogger();
 			logger.Error(e, "There was a problem initializing the nlog configuration file.");
 		}
+
+		LogManager.ReconfigExistingLoggers();
 	}
 
 	public static Stream GetEmbeddedResourceStream(Assembly assembly, string resourceFileName)

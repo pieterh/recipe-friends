@@ -4,6 +4,7 @@
 @using RecipeFriends.Shared.DTO
 
 @inject NavigationManager NavigationManager
+@inject IRecipeFriendsService RecipeFriendsService
 @inject IDialogService DialogService
 @inject IRecipeService RecipeService
 @inject IDocumentService DocumentService
@@ -18,33 +19,38 @@
 }
 else
 {
-    <MudDataGrid T="RecipeInfo" Items="@recipes" Filterable="true" QuickFilter="@_quickFilter" FilterMode="@DataGridFilterMode.ColumnFilterRow">
-        <ToolBarContent>
-            <MudButton OnClick="() => NewRecipe()" Color="@Color.Success" Class="add-item-btn">Add Item</MudButton>
-            <MudButton Color="@Color.Error" Class="remove-item-btn">Remove Item</MudButton>                        
-            <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
-                AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-        </ToolBarContent>
-        <Columns>
-            <PropertyColumn Property="x => x.Title" Title="Title" />
-            <PropertyColumn Property="x => x.Category.Name" Title="Category" />
-            <PropertyColumn Property="x => x.TagsAsString" Title="Tags">
-                <FilterTemplate>
-                    <MudIconButton OnClick="@OpenTagFilter" Icon="@_icon" Size="@Size.Small" />
-                    <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)" />
-                    <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Style="width:150px">
-                        <MudStack Spacing="0">
-                            <MudCheckBox T="bool" Label="Select All" Size="@Size.Small" Checked="@_selectAll" CheckedChanged="@SelectAll" />
-                            <MudStack Spacing="0" Style="overflow-y:auto;max-height:250px">
-                                @foreach (var item in tags)
+    <MudDataGrid T="RecipeInfo" Items="@recipes" Filterable="true" QuickFilter="@_quickFilter"
+    FilterMode="@DataGridFilterMode.ColumnFilterRow">
+    <ToolBarContent>
+        <MudButton OnClick="() => NewRecipe()" Color="@Color.Success" Class="add-item-btn">Add Item</MudButton>
+        <MudButton Color="@Color.Error" Class="remove-item-btn">Remove Item</MudButton>
+        <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+            AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Title" Title="Title" />
+        <PropertyColumn Property="x => x.Category.Name" Title="Category" />
+        <PropertyColumn Property="x => x.TagsAsString" Title="Tags">
+            <FilterTemplate>
+                <MudIconButton OnClick="@OpenTagFilter" Icon="@_icon" Size="@Size.Small" />
+                <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)" />
+                <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
+                    Style="width:150px">
+                    <MudStack Spacing="0">
+                        <MudCheckBox T="bool" Label="Select All" Size="@Size.Small" Checked="@_selectAll"
+                            CheckedChanged="@SelectAll" />
+                        <MudStack Spacing="0" Style="overflow-y:auto;max-height:250px">
+                            @foreach (var item in tags)
                                 {
-                                    <MudCheckBox T="bool" Label="@($"{item.Name}")" Size="@Size.Small" Checked="@(_selectedItems.Contains(item))"
+                                    <MudCheckBox T="bool" Label="@($"{item.Name}")" Size="@Size.Small"
+                                        Checked="@(_selectedItems.Contains(item))"
                                         CheckedChanged="@((value) => SelectedChanged(value, item))" />
                                 }
                             </MudStack>
                             <MudStack Row="true">
-                                    <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
-                                    <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
+                                <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
+                                <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter
+                                </MudButton>
                             </MudStack>
                         </MudStack>
                     </MudPopover>
@@ -53,17 +59,20 @@ else
             <TemplateColumn CellClass="d-flex justify-end" Filterable="false" Sortable="false">
                 <CellTemplate>
                     <MudStack Row>
-                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="() => ViewRecipe(context.Item.Id)">View</MudButton>
-                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="async () => await GoToEditPage(context.Item.Id)">Edit</MudButton>
-                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="() => DownloadRecipe(context.Item.Id)">Download</MudButton>                    
-                    </MudStack>
-                </CellTemplate>
-            </TemplateColumn>
-        </Columns>
-        <PagerContent>
-            <MudDataGridPager T="RecipeInfo" />
-        </PagerContent>
-    </MudDataGrid>
+                     <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary"
+                         OnClick="() => ViewRecipe(context.Item.Id)">View</MudButton>
+                     <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary"
+                         OnClick="async () => await OpenEditDialog(context.Item.Id)">Edit</MudButton>
+                     <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary"
+                         OnClick="() => DownloadRecipe(context.Item.Id)">Download</MudButton>
+                 </MudStack>
+             </CellTemplate>
+         </TemplateColumn>
+     </Columns>
+     <PagerContent>
+         <MudDataGridPager T="RecipeInfo" />
+     </PagerContent>
+ </MudDataGrid>
 }
 
 @code {
@@ -73,7 +82,7 @@ else
 
     HashSet<TagInfo> _selectedItems = new();
     HashSet<TagInfo> _filterItems = new();
-        FilterDefinition<RecipeInfo> _filterDefinition;
+    FilterDefinition<RecipeInfo> _filterDefinition;
     string _icon = Icons.Material.Outlined.FilterAlt;
     bool _selectAll = true;
     bool _filterOpen = false;
@@ -86,13 +95,13 @@ else
         _filterItems = tags.ToHashSet();
 
         _filterDefinition = new FilterDefinition<RecipeInfo>
-        {
-            FilterFunction = (x) => 
-            { 
-                var f = _filterItems.Select(x => x.Name).Intersect(x.Tags);
-                return f.Count() > 0;
-            }
-        };
+            {
+                FilterFunction = (x) =>
+                {
+                    var f = _filterItems.Select(x => x.Name).Intersect(x.Tags);
+                    return f.Count() > 0;
+                }
+            };
 
     }
 
@@ -163,55 +172,73 @@ else
     }
 
     private async Task NewRecipe()
-    { 
+    {
         var parameters = new DialogParameters<RecipeView>();
         parameters.Add(x => x.Id, -1);
 
-        var options = new DialogOptions {  MaxWidth = MaxWidth.Medium,  FullWidth = true, DisableBackdropClick = true, CloseOnEscapeKey = true };
+        var options = new DialogOptions
+            {
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true,
+                DisableBackdropClick = true,
+                CloseOnEscapeKey = true
+            };
         var dialog = DialogService.Show<RecipeEdit>("", parameters, options);
-        await dialog.Result;  
-        await RefreshRecipes();            
+        await dialog.Result;
+        await RefreshRecipes();
     }
 
-    private async Task GoToEditPage(int id)
+    private async Task OpenEditDialog(int id)
     {
-        @* NavigationManager.NavigateTo($"/recipe/edit/{id}");   *@
         var parameters = new DialogParameters<RecipeView>();
         parameters.Add(x => x.Id, id);
 
-        var options = new DialogOptions {  MaxWidth = MaxWidth.Medium, FullWidth = true, DisableBackdropClick = true, CloseOnEscapeKey = true };
-        var dialog = DialogService.Show<RecipeEdit>("", parameters, options);       
-        var r = await dialog.Result;    
-        await RefreshRecipes(); 
+        var options = new DialogOptions
+            {
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true,
+                DisableBackdropClick = true,
+                CloseOnEscapeKey = true
+            };
+        var dialog = DialogService.Show<RecipeEdit>("uh", parameters, options);
+        var r = await dialog.Result;
+        await RefreshRecipes();
     }
 
     private void ViewRecipe(int id)
-    { 
+    {
         //var recipe = recipes.Where<RecipeInfo>(x => x.Id == id).First<RecipeInfo>();
 
         var parameters = new DialogParameters<RecipeView>();
         parameters.Add(x => x.Id, id);
 
-        var options = new DialogOptions { FullScreen = true,  CloseOnEscapeKey = true };
-        DialogService.Show<RecipeView>("", parameters, options);        
+        var options = new DialogOptions { FullScreen = true, CloseOnEscapeKey = true };
+        DialogService.Show<RecipeView>("", parameters, options);
     }
 
-    private async void DownloadRecipe(int id)   {
-        try{
-            var result = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(CancellationToken.None).ConfigureAwait(true);
-            var pdf = await DocumentService.RecipeToPDFAsync(id, CancellationToken.None).ConfigureAwait(true);
+    private async void DownloadRecipe(int id)
+    {
+        try
+        {
+            string initialPath = RecipeFriendsService.GetDocumentsPath();
+            var result = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(initialPath, CancellationToken.None);
+            var pdf = await DocumentService.RecipeToPDFAsync(id, CancellationToken.None);
             if (result.IsSuccessful)
-            {               
-                using FileStream outputStream = System.IO.File.OpenWrite($"{result.Folder.Path}{Path.DirectorySeparatorChar}Recipe.pdf");
+            {
+                using FileStream outputStream =
+                System.IO.File.OpenWrite($"{result.Folder.Path}{Path.DirectorySeparatorChar}Recipe.pdf");
                 using StreamWriter streamWriter = new StreamWriter(outputStream);
-                await streamWriter.BaseStream.WriteAsync(pdf);        
+                await streamWriter.BaseStream.WriteAsync(pdf);
             }
-        }catch(Exception ex){
+        }
+        catch (Exception ex)
+        {
             Console.WriteLine(ex.Message);
         }
     }
 
-    private async Task RefreshRecipes(){
+    private async Task RefreshRecipes()
+    {
         recipes = await RecipeService.GetRecipesAsync(CancellationToken.None);
     }
 }
