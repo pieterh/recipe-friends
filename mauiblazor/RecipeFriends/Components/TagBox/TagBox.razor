@@ -1,55 +1,56 @@
-﻿<MudElement>
+﻿@typeparam TInfo where TInfo : INameable
 
+<MudElement>
     <MudChipSet AllClosable="true" OnClose="ChipClosed" style="display:inline-flex" >
-    @foreach (var tag in RecipeTags)
+    @foreach (var item in Items)
     {
-        <MudChip Text="@tag.Name" Tag="@tag"></MudChip>
+        <MudChip Text="@item.Name" Tag="@item"></MudChip>
     }
     </MudChipSet>
     <div style="display:inline-flex">
-        <MudAutocomplete T="TagInfo" Value="value1" SearchFunc="@SearchTags" ValueChanged="@AddTag" ToStringFunc="@(e=> e == null ? null : e.Name)"/>
+        <MudAutocomplete T="TInfo" Value="value1" SearchFunc="@SearchItems" ValueChanged="@AddItem" ToStringFunc="@(e => e == null ? null : e.Name)"/>
     </div>
 </MudElement>
 
 @code {
     private string inputText = string.Empty;
-    private TagInfo value1 ;
+    private TInfo value1;
     private bool resetValueOnEmptyText = true;
 
-    private List<TagInfo> filteredTags = new List<TagInfo>();
+    private List<TInfo> filteredItems = new List<TInfo>();
 
     [Parameter]
-    public List<TagInfo> AllTags { get; set; } = new List<TagInfo>();
+    public List<TInfo> AllItems { get; set; } = new List<TInfo>();
 
     [Parameter]
-    public List<TagInfo> RecipeTags { get; set; } = new List<TagInfo>();
+    public List<TInfo> Items { get; set; } = new List<TInfo>();
 
     [Parameter]
-    public EventCallback<List<TagInfo>> OnTagsUpdated { get; set; }
+    public EventCallback<List<TInfo>> OnItemsUpdated { get; set; }
 
-    public void ChipClosed(MudChip chip) => RemoveTag(chip.Tag as TagInfo);
+    public void ChipClosed(MudChip chip) => RemoveItem((TInfo)chip.Tag);
 
-    private async Task<IEnumerable<TagInfo>> SearchTags(string value)
+    private async Task<IEnumerable<TInfo>> SearchItems(string value)
     {
-        filteredTags = AllTags                        
+        filteredItems = AllItems                        
                         .Where(t => t.Name.Contains(inputText, StringComparison.OrdinalIgnoreCase))
-                        .Where(t => !RecipeTags.Any(rt => rt.Id == t.Id))                                                
+                        .Where(t => !Items.Any(rt => rt.Id == t.Id))                                                
                         .OrderBy((x) => x.Name)
                         .Take(10)                        
                         .ToList();
-        return await Task.FromResult<IEnumerable<TagInfo>>(filteredTags);
+        return await Task.FromResult<IEnumerable<TInfo>>(filteredItems);
     }
 
-    private void AddTag(TagInfo tag)
+    private void AddItem(TInfo item)
     {
-        RecipeTags.Add(tag);
+        Items.Add(item);
         inputText = string.Empty;
-        OnTagsUpdated.InvokeAsync(RecipeTags);
+        OnItemsUpdated.InvokeAsync(Items);
     }
 
-    private void RemoveTag(TagInfo tag)
+    private void RemoveItem(TInfo item)
     {
-        RecipeTags.RemoveAll(t => t.Id == tag.Id);
-        OnTagsUpdated.InvokeAsync(RecipeTags);
+        Items.RemoveAll(t => t.Id == item.Id);
+        OnItemsUpdated.InvokeAsync(Items);
     }
 }

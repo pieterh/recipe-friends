@@ -36,7 +36,7 @@
                                         <MudSelectItem Value="cat" />
                                     }
                                 </MudSelect>
-                                <TagBox AllTags="@allTags" RecipeTags="recipeDetails.Tags" ></TagBox>                                               
+                                <TagBox TInfo="TagInfo" AllItems="@allTags" Items="recipeDetails.Tags" ></TagBox>                                               
                             </div>
                         </MudPaper>
                     </MudTabPanel>
@@ -77,6 +77,9 @@
                                 </MudDataGrid>                       
                             </MudPaper>
                     </MudTabPanel>
+                    <MudTabPanel Text="Equipment">
+                        <TagBox TInfo="EquipmentInfo" AllItems="@allEquipment" Items="recipeDetails.Equipment" ></TagBox> 
+                    </MudTabPanel>
                     <MudTabPanel Text="Directions">
                         
                             <MudPaper Height="329px" xs="12">                       
@@ -84,6 +87,7 @@
                             </MudPaper>
                         
                     </MudTabPanel>
+
                     <MudTabPanel Text="Notes">                        
                             <MudPaper Height="329px" xs="12">                       
                                 <MarkdownEditor MaxHeight="225px" @bind-Value="@recipeDetails.Notes" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })'/>                       
@@ -113,6 +117,7 @@
 
     private RecipeDetails? recipeDetails;
     private List<TagInfo> allTags;
+    private List<EquipmentInfo> allEquipment;
     private List<CategoryInfo> allCategories;
     private List<MeasurementInfo> allMeasurements;
     
@@ -121,9 +126,17 @@
 
     protected override async Task OnInitializedAsync()
     {        
-        allTags = (await RecipeService.GetTagsAsync(CancellationToken.None)) .ToList();
-        allCategories = (await RecipeService.GetCategoriesAsync(CancellationToken.None)).ToList();
-        allMeasurements = (await RecipeService.GetMeasurementsAsync(CancellationToken.None)).ToList();
+        var tagsTask = RecipeService.GetTagsAsync(CancellationToken.None);
+        var equipmentTask = RecipeService.GetEquipmentAsync(CancellationToken.None);
+        var categoriesTask = RecipeService.GetCategoriesAsync(CancellationToken.None);
+        var measurementsTask = RecipeService.GetMeasurementsAsync(CancellationToken.None);
+
+        await Task.WhenAll(tagsTask, equipmentTask, categoriesTask, measurementsTask);
+
+        allTags = (await tagsTask).ToList();
+        allEquipment = (await equipmentTask).ToList();
+        allCategories = (await categoriesTask).ToList();
+        allMeasurements = (await measurementsTask).ToList();
 
         if (Id > 0) {
             recipeDetails = await RecipeService.GetRecipeDetailsAsync(Id, CancellationToken.None);

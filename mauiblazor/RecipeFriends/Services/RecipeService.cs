@@ -89,6 +89,7 @@ public class RecipeService : IRecipeService
         MapRecipeDTOToRecipe(recipeDTO, existingRecipe);
 
         UpdateRecipeTags(recipeDTO, existingRecipe);
+        UpdateRecipeEquipment(recipeDTO, existingRecipe);
         UpdateRecipeIngredients(recipeDTO, existingRecipe);
         return true;
     }
@@ -107,6 +108,7 @@ public class RecipeService : IRecipeService
         };
         _context.Recipes.Add(newRecipe);
         UpdateRecipeTags(recipeDTO, newRecipe);
+        UpdateRecipeEquipment(recipeDTO, newRecipe);
         UpdateRecipeIngredients(recipeDTO, newRecipe);
     }
 
@@ -136,6 +138,36 @@ public class RecipeService : IRecipeService
                     _context.Tags.Add(tagRecipe);
                 }
                 existingRecipe.Tags.Add(tagRecipe);
+            }
+        }
+    }
+
+    private void UpdateRecipeEquipment(RecipeDetails recipeDTO, Recipe existingRecipe)
+    {
+        // Handle equipment
+        // Identify equipment that are no longer associated
+        var itemsToRemove = existingRecipe.Equipment
+            .Where(rt => !recipeDTO.Tags.Any(t => t.Id == rt.Id))
+            .ToList();
+
+        foreach (var equipmentToRemove in itemsToRemove)
+        {
+            existingRecipe.Equipment.Remove(equipmentToRemove);
+        }
+
+        // Add new tags
+        foreach (var equipmentDTO in recipeDTO.Equipment)
+        {
+            // Check if the Equipment already exists in the database
+            if (!existingRecipe.Equipment.Any(rt => rt.Id == equipmentDTO.Id))
+            {
+                var equipmentRecipe = _context.Equipment.FirstOrDefault((x) => x.Id == equipmentDTO.Id);
+                if (equipmentRecipe == null)
+                {
+                    equipmentRecipe = new Equipment() { Name = equipmentDTO.Name };
+                    _context.Equipment.Add(equipmentRecipe);
+                }
+                existingRecipe.Equipment.Add(equipmentRecipe);
             }
         }
     }
@@ -301,6 +333,12 @@ public class RecipeService : IRecipeService
         return tags.Select(MapToTagDTO).ToArray();
     }
 
+   public async Task<EquipmentInfo[]> GetEquipmentAsync(CancellationToken cancellationToken)
+    {
+        var equipment = await _context.Equipment.ToListAsync(cancellationToken: cancellationToken);
+        return equipment.Select(MapToEquipmentDTO).ToArray();
+    }
+
     public async Task<CategoryInfo[]> GetCategoriesAsync(CancellationToken cancellationToken)
     {
         var categories = await _context.Catagories
@@ -327,6 +365,7 @@ public class RecipeService : IRecipeService
         // make sure the related lists and references are loaded
         _context.Entry(recipe).Collection(r => r.Ingredients).Load();
         _context.Entry(recipe).Collection(r => r.Tags).Load();
+        _context.Entry(recipe).Collection(r => r.Equipment).Load();
         _context.Entry(recipe).Reference(r => r.Category).Load();
         return new RecipeDetails
         {
@@ -340,6 +379,7 @@ public class RecipeService : IRecipeService
             CookingTime = recipe.CookingTime,
             Ingredients = recipe.Ingredients.Select(MapToIngredientDTO).ToList(),
             Tags = recipe.Tags.Select(rt => new TagInfo() { Id = rt.Id, Name = rt.Name }).ToList(),
+            Equipment = recipe.Equipment.Select(rt => new EquipmentInfo() { Id = rt.Id, Name = rt.Name }).ToList(),
             Images = recipe.Images
                 .Select(
                     rt =>
@@ -389,6 +429,11 @@ public class RecipeService : IRecipeService
     private TagInfo MapToTagDTO(Tag tag)
     {
         return new TagInfo { Id = tag.Id, Name = tag.Name };
+    }
+
+     private EquipmentInfo MapToEquipmentDTO(Equipment equipment)
+    {
+        return new EquipmentInfo { Id = equipment.Id, Name = equipment.Name };
     }
 
     private CategoryInfo MapToCategoryDTO(Category category)

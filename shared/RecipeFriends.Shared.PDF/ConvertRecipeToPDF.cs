@@ -52,7 +52,7 @@ public class ConvertRecipeToPDF
     private Document ToDocument(RecipeDetails recipeDetails, bool pageNumbers)
     {
         var ingredients = recipeDetails.Ingredients;
-        IEnumerable<string> equipment = ["Skillet", "Rookplankje"];
+        var equipment = recipeDetails.Equipment.Select(x => x.Name);
 
         bool debugOn = false;
         var document = QuestPDF.Fluent.Document.Create(container =>

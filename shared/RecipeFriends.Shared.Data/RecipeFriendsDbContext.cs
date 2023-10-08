@@ -15,6 +15,8 @@ public class RecipeFriendsDbContext : DbContext
     public DbSet<Recipe> Recipes { get; set; } = default!;
     public DbSet<Tag> Tags { get; set; } = default!;
 
+    public DbSet<Equipment> Equipment { get; set; } = default!;
+
     public DbSet<Language> Languages { get; set; } = default!;
 
     public DbSet<Category> Catagories { get; set; } = default!;

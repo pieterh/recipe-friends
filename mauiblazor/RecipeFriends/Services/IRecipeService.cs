@@ -9,7 +9,7 @@ public interface IRecipeService
     Task<bool> SaveRecipeDetailsAsync(RecipeDetails recipeDetails, CancellationToken cancellationToken);
 
     Task<TagInfo[]> GetTagsAsync(CancellationToken cancellationToken);
-
+    Task<EquipmentInfo[]> GetEquipmentAsync(CancellationToken cancellationToken);
     Task<CategoryInfo[]> GetCategoriesAsync(CancellationToken cancellationToken);
 
     Task<MeasurementInfo[]> GetMeasurementsAsync(CancellationToken cancellationToken);

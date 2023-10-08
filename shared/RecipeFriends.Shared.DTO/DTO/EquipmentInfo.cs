@@ -1,6 +1,6 @@
-﻿namespace RecipeFriends.Shared.DTO;
+namespace RecipeFriends.Shared.DTO;
 
-public class TagInfo: INameable
+public class EquipmentInfo: INameable
 {
     public int Id { get; set; }
     public required string Name { get; set; }

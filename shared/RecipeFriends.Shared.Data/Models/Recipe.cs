@@ -26,5 +26,7 @@ public class Recipe
     public virtual ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
     public virtual ICollection<Tag> Tags { get; set; } = new List<Tag>();
 
-    public virtual ICollection<ImageData> Images { get; set; } = new List<ImageData>();
+    public virtual ICollection<Equipment> Equipment { get; set; } = new List<Equipment>();
+
+    public virtual ICollection<Image> Images { get; set; } = new List<Image>();
 }
