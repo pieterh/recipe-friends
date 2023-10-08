@@ -9,13 +9,13 @@
 			"problemMatcher": [
 				"$msCompile"
 			],
-			"label": "maui: Build"
+			"label": "maui: Build2"
 		},
 		{
 			"type": "maui",
 			"targetFramework": "net8.0-maccatalyst",
 			"configuration": "Debug",
-			"project": "c:\\Repos\\github\\recipe-friends\\mauiblazor\\RecipeFriends\\RecipeFriends.csproj",
+			"project": "/Users/pieter/Documents/workspace/recipe-friends/mauiblazor/RecipeFriends/RecipeFriends.csproj",
 			"problemMatcher": [
 				"$msCompile"
 			],
@@ -58,6 +58,15 @@
 				"$dotnet-meteor.problemMatcher"
 			],
 			"label": "dotnet-meteor: Build"
+		},
+		{
+			"type": "dotnet",
+			"task": "build",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build",
+			"label": "dotnet: build"
 		}
 	]
 }

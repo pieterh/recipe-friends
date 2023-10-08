@@ -11,6 +11,10 @@ public static class DotNetInfo
         ArgumentNullException.ThrowIfNull(logger);
 
         try{
+            logger.Info("AppDomain:");
+            logger.Info("BaseDirectory: {0}", AppDomain.CurrentDomain.BaseDirectory);
+            var s = AppDomain.CurrentDomain.BaseDirectory;
+            var p = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             logger.Info("Environment:");
             logger.Info("OS Platform: {0}", Environment.OSVersion.Platform);
             logger.Info("OS Version: {0}", Environment.OSVersion.ToString());

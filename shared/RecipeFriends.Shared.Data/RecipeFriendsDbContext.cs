@@ -29,7 +29,7 @@ public class RecipeFriendsDbContext : DbContext
         if (string.IsNullOrWhiteSpace(DbPath))
         {
             var folder = AppDomain.CurrentDomain.BaseDirectory;
-            DbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "recipefriends.db");
+            DbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "recipe-friends", "recipefriends.db");
             Logger.Warn("No name for database file given. Defaults to database file {DbPath}", DbPath);
         }
         else
@@ -38,6 +38,14 @@ public class RecipeFriendsDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlite($"Data Source={DbPath}");
+
+    public void Checkpoint(){
+        Logger.Info("=> SQLite checkpoint");
+        var i = this.Database.ExecuteSqlRaw("pragma wal_checkpoint;");
+        // var j = this.Database.ExecuteSqlRaw("VACUUM");
+        Logger.Info("== SQLite checkpoint {i}", i);
+        Logger.Info("<= SQLite checkpoint");
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

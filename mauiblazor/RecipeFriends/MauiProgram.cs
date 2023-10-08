@@ -13,6 +13,7 @@ using NLog.Extensions.Logging;
 using RecipeFriends.Services;
 using RecipeFriends.Shared.Data;
 using System.Reflection;
+using Microsoft.Maui.Controls.PlatformConfiguration;
 
 namespace RecipeFriends;
 
@@ -32,7 +33,8 @@ public static class MauiProgram
 			.ConfigureLifecycleEvents(AppLifecycle =>
 			{
 				logger.Info("ConfigureLifecycleEvents");
-#if MACCATALYST
+				
+#if MACCATALYST || IOS
 				AppLifecycle.AddiOS(ios => ios.DidEnterBackground((a) => {
 					var logger = NLog.LogManager.GetCurrentClassLogger();
 					logger.Error("DidEnterBackground");
@@ -42,7 +44,16 @@ public static class MauiProgram
 					var logger = NLog.LogManager.GetCurrentClassLogger();
 					logger.Error("WillTerminate");
 					Console.WriteLine("WillTerminate");
-				}));
+					var ctx = new RecipeFriendsDbContext();
+					ctx.Checkpoint();
+				}));				
+#elif WINDOWS
+				AppLifecycle.AddWindows(windows => windows.OnClosed((window, args) => {
+					logger.Error("OnClosed");
+					Console.WriteLine("OnClosed");
+					var ctx = new RecipeFriendsDbContext();
+					ctx.Checkpoint();
+				}));			
 #endif
 			})
 			.UseMauiCommunityToolkit(options =>
