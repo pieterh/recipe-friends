@@ -28,7 +28,7 @@ public class DocumentService : IDocumentService
         recipeMarkdown.AppendLine(recipe.Directions);
         recipeMarkdown.AppendLine("***");
         recipeMarkdown.AppendLine("## Personal notes");
-        recipeMarkdown.AppendLine(recipe.Notes);        
+        recipeMarkdown.AppendLine(recipe.Notes);
         return recipeMarkdown.ToString();
     }
     public async Task<IEnumerable<byte[]>> RecipeToImageAsync(int id, CancellationToken cancellationToken)
@@ -86,7 +86,7 @@ public class DocumentService : IDocumentService
     //                 </li>                
     //             </ul>            
     //     """); 
-        
+
     //     recipeHtml.AppendLine($"<div class=\"mt-3 mt-md-5\"><h6>Directions</h6>{DirectionsHtml(recipe.Directions)}</div>");
     //     recipeHtml.AppendLine($"</div></div>");
     //     recipeHtml.AppendLine($"<div class=\"col-lg-4 col-md-5\">");
@@ -94,7 +94,7 @@ public class DocumentService : IDocumentService
     //     recipeHtml.AppendLine($"<br/>");
     //     recipeHtml.AppendLine($"<div class=\"rounded-12 bg-lightest-gray p-4\"><h6>Equipment</h6><ul class=\"Nutrition-list list-unstyled\">{EquipmentHtml(new string[] {"skillet"})}</ul></div>");
 
-        
+
 
     //     recipeHtml.AppendLine($"</div></div>");
     //     return recipeHtml.ToString();

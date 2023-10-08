@@ -14,14 +14,17 @@ public class RecipeService : IRecipeService
         _context = context;
     }
 
-    public async Task<RecipeDetails> GetRecipeDetailsAsync(int id, CancellationToken cancellationToken)
+    public async Task<RecipeDetails> GetRecipeDetailsAsync(
+        int id,
+        CancellationToken cancellationToken
+    )
     {
         var recipe = await _context.Recipes.FindAsync(id);
         if (recipe == null)
         {
             return null;
         }
-            ;
+        ;
         return MapToRecipeDetailsDTO(recipe);
     }
 
@@ -31,7 +34,6 @@ public class RecipeService : IRecipeService
         var r = l.Select(MapToRecipeInfoDTO).ToArray();
         return r;
     }
-
 
     public async Task<bool> SaveRecipeDetailsAsync(RecipeDetails recipeDTO, CancellationToken cancellationToken)
     {
@@ -72,11 +74,17 @@ public class RecipeService : IRecipeService
         }
     }
 
-    private async Task<bool> UpdateRecipeAsync(RecipeDetails recipeDTO, CancellationToken cancellationToken)
+    private async Task<bool> UpdateRecipeAsync(
+        RecipeDetails recipeDTO,
+        CancellationToken cancellationToken
+    )
     {
-        var existingRecipe = await _context.Recipes.Include(r => r.Tags).FirstOrDefaultAsync(r => r.Id == recipeDTO.Id, cancellationToken);
+        var existingRecipe = await _context.Recipes
+            .Include(r => r.Tags)
+            .FirstOrDefaultAsync(r => r.Id == recipeDTO.Id, cancellationToken);
 
-        if (existingRecipe == null) return false;
+        if (existingRecipe == null)
+            return false;
 
         MapRecipeDTOToRecipe(recipeDTO, existingRecipe);
 
@@ -107,8 +115,8 @@ public class RecipeService : IRecipeService
         // Handle tags
         // Identify tags that are no longer associated
         var tagsToRemove = existingRecipe.Tags
-                                            .Where(rt => !recipeDTO.Tags.Any(t => t.Id == rt.Id))
-                                            .ToList();
+            .Where(rt => !recipeDTO.Tags.Any(t => t.Id == rt.Id))
+            .ToList();
 
         foreach (var tagToRemove in tagsToRemove)
         {
@@ -137,37 +145,40 @@ public class RecipeService : IRecipeService
         // Handle ingerdients
         // Identify ingredients that are no longer associated
         var ingredientsToRemove = existingRecipe.Ingredients
-                                            .Where(rt => !recipeDTO.Ingredients.Any(t => t.Id == rt.Id))
-                                            .ToList();
+            .Where(rt => !recipeDTO.Ingredients.Any(t => t.Id == rt.Id))
+            .ToList();
         foreach (var ingredientToRemove in ingredientsToRemove)
         {
             existingRecipe.Ingredients.Remove(ingredientToRemove);
         }
         // add new ingredients or update existing
-        foreach(var ingredientDTO in recipeDTO.Ingredients){
-            var ingredient = existingRecipe.Ingredients.FirstOrDefault(i => i.Id == ingredientDTO.Id);
-            if (ingredient == null){
+        foreach (var ingredientDTO in recipeDTO.Ingredients)
+        {
+            var ingredient = existingRecipe.Ingredients.FirstOrDefault(
+                i => i.Id == ingredientDTO.Id
+            );
+            if (ingredient == null)
+            {
                 // add new ingredient
-                ingredient = new Ingredient(){
+                ingredient = new Ingredient()
+                {
                     Order = ingredientDTO.Order,
                     Name = ingredientDTO.Name,
                     Amount = ingredientDTO.Amount,
                     MeasurementId = ingredientDTO.Measurement.Id
                 };
                 existingRecipe.Ingredients.Add(ingredient);
-            }else{
+            }
+            else
+            {
                 // update existing
                 ingredient.Order = ingredientDTO.Order;
                 ingredient.Name = ingredientDTO.Name;
                 ingredient.Amount = ingredientDTO.Amount;
-                ingredient.MeasurementId = ingredientDTO.Measurement.Id;                    
+                ingredient.MeasurementId = ingredientDTO.Measurement.Id;
             }
-
         }
     }
-
-
-
 
     // public async Task<bool> SaveRecipeDetailsAsync(RecipeDetails recipeDTO, CancellationToken cancellationToken)
     // {
@@ -242,7 +253,7 @@ public class RecipeService : IRecipeService
     //                 ingredient.Order = ingredientDTO.Order;
     //                 ingredient.Name = ingredientDTO.Name;
     //                 ingredient.Amount = ingredientDTO.Amount;
-    //                 ingredient.MeasurementId = ingredientDTO.Measurement.Id;                    
+    //                 ingredient.MeasurementId = ingredientDTO.Measurement.Id;
     //             }
 
     //         }
@@ -292,13 +303,17 @@ public class RecipeService : IRecipeService
 
     public async Task<CategoryInfo[]> GetCategoriesAsync(CancellationToken cancellationToken)
     {
-        var categories = await _context.Catagories.Where(c => c.Status == EntityStatus.Active).ToListAsync(cancellationToken: cancellationToken);
+        var categories = await _context.Catagories
+            .Where(c => c.Status == EntityStatus.Active)
+            .ToListAsync(cancellationToken: cancellationToken);
         return categories.Select(MapToCategoryDTO).ToArray();
     }
 
     public async Task<MeasurementInfo[]> GetMeasurementsAsync(CancellationToken cancellationToken)
     {
-        var measurements = await _context.Measurements.ToListAsync(cancellationToken: cancellationToken);
+        var measurements = await _context.Measurements.ToListAsync(
+            cancellationToken: cancellationToken
+        );
         return measurements.Select(MapToMeasurementDTO).ToArray();
     }
 
@@ -325,7 +340,17 @@ public class RecipeService : IRecipeService
             CookingTime = recipe.CookingTime,
             Ingredients = recipe.Ingredients.Select(MapToIngredientDTO).ToList(),
             Tags = recipe.Tags.Select(rt => new TagInfo() { Id = rt.Id, Name = rt.Name }).ToList(),
-            Images = recipe.Images.Select(rt => new ImageInfo() { Id = rt.Id, Title = rt.Title, Name = rt.Name }).ToList()
+            Images = recipe.Images
+                .Select(
+                    rt =>
+                        new ImageInfo()
+                        {
+                            Id = rt.Id,
+                            Title = rt.Title,
+                            Name = rt.Name
+                        }
+                )
+                .ToList()
         };
     }
 
@@ -338,7 +363,11 @@ public class RecipeService : IRecipeService
         {
             Id = recipe.Id,
             Title = recipe.Title,
-            Category = new CategoryInfo() { Id = recipe.Category.CategoryId, Name = recipe.Category.Name },
+            Category = new CategoryInfo()
+            {
+                Id = recipe.Category.CategoryId,
+                Name = recipe.Category.Name
+            },
             ShortDescription = recipe.ShortDescription,
             Tags = recipe.Tags.Select(rt => rt.Name).ToList()
         };
@@ -359,29 +388,17 @@ public class RecipeService : IRecipeService
 
     private TagInfo MapToTagDTO(Tag tag)
     {
-        return new TagInfo
-        {
-            Id = tag.Id,
-            Name = tag.Name
-        };
+        return new TagInfo { Id = tag.Id, Name = tag.Name };
     }
 
     private CategoryInfo MapToCategoryDTO(Category category)
     {
-        return new CategoryInfo
-        {
-            Id = category.CategoryId,
-            Name = category.Name
-        };
+        return new CategoryInfo { Id = category.CategoryId, Name = category.Name };
     }
 
     private MeasurementInfo MapToMeasurementDTO(Measurement measurement)
     {
-        return new MeasurementInfo
-        {
-            Id = measurement.MeasurementId,
-            Name = measurement.Name
-        };
+        return new MeasurementInfo { Id = measurement.MeasurementId, Name = measurement.Name };
     }
     #endregion Map Model To DTO
 
@@ -402,7 +419,7 @@ public class RecipeService : IRecipeService
 
     //     foreach (var tagDTO in recipeDTO.Tags)
     //     {
-    //         // Check if the tag already exists in the database                
+    //         // Check if the tag already exists in the database
     //         var existingTag = _context.Tags.FirstOrDefault((x) => x.Id == tagDTO.Id);
     //         if (existingTag == null)
     //         {

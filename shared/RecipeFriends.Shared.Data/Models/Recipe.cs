@@ -10,14 +10,14 @@ public class Recipe
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     public required string Title { get; set; }
-     public int CategoryId { get; set; }
+    public int CategoryId { get; set; }
     public virtual Category Category { get; set; }
-    
+
     public required string ShortDescription { get; set; }
     public required string Description { get; set; }
     public required string Directions { get; set; }
 
-    public string? Notes { get; set;}
+    public string? Notes { get; set; }
 
     public required TimeOnly PreparationTime { get; set; }
     public required TimeOnly CookingTime { get; set; }
