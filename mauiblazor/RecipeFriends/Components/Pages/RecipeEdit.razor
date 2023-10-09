@@ -2,6 +2,7 @@
 @using RecipeFriends.Shared.DTO
 @using RecipeFriends.Components.TagBox
 @using RecipeFriends.Components.FileDropZone
+@using RecipeFriends.Components.ImageGallery
 @using RecipeFriends.Data
 @using RecipeFriends.Services
 
@@ -91,7 +92,8 @@
                     <MudTabPanel Text="Images">  
                         <MudGrid>
                             <MudItem xs="12">
-                                <MudGrid Justify="Justify.FlexStart">
+                                <ImageGallery ImagesToShow="@imagesToShow" OnFileAdded="HandleFileAdded"></ImageGallery>
+                                @* <MudGrid Justify="Justify.FlexStart">
                                     @foreach(var image in imagesToShow)
                                     {   
                                         <MudItem xs="3">
@@ -101,7 +103,7 @@
                                     <MudItem xs="3">
                                         <FileDropZone OnFileAdded="HandleFileAdded"></FileDropZone>
                                     </MudItem>
-                                </MudGrid>
+                                </MudGrid> *@
                             </MudItem>
                         </MudGrid>                      
                     </MudTabPanel>  
