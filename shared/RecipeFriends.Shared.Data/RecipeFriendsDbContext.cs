@@ -13,6 +13,8 @@ public class RecipeFriendsDbContext : DbContext
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
     public static string DbPath { get; set; } = default!;
     public DbSet<Recipe> Recipes { get; set; } = default!;
+    public DbSet<Image> Images { get; set; } = default!;
+
     public DbSet<Tag> Tags { get; set; } = default!;
 
     public DbSet<Equipment> Equipment { get; set; } = default!;
@@ -41,12 +43,40 @@ public class RecipeFriendsDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlite($"Data Source={DbPath}");
 
-    public void Checkpoint(){
-        Logger.Info("=> SQLite checkpoint");
-        var i = this.Database.ExecuteSqlRaw("pragma wal_checkpoint;");
-        // var j = this.Database.ExecuteSqlRaw("VACUUM");
-        Logger.Info("== SQLite checkpoint {i}", i);
-        Logger.Info("<= SQLite checkpoint");
+    public void PerformInitialization()
+    {
+        try
+        {
+            Logger.Info("=> PerformInitialization");
+
+            Logger.Info("Update database settings");
+            this.Database.ExecuteSqlRaw("PRAGMA journal_mode = WAL;");
+            this.Database.ExecuteSqlRaw("PRAGMA journal_size_limit = 50;");
+
+            Logger.Info("Perform database migrations");
+            this.Database.Migrate(); // Apply migrations
+            
+            Logger.Info("<= PerformInitialization");
+        }
+        catch (Exception ex)
+        {
+            // Log the exception or terminate the application based on your needs
+            Logger.Error(ex, "Problem migrating database");
+        }
+    }
+
+    public void PerformShutdown()
+    {
+        Logger.Info("=> PerformShutdown");
+        Logger.Info("== SQLite checkpoint");
+        var i1 = this.Database.ExecuteSqlRaw("pragma wal_checkpoint;");
+        Logger.Info("== SQLite checkpoint {i}", i1);
+
+        Logger.Info("== SQLite Optimize");
+        var i2 = this.Database.ExecuteSqlRaw("pragma optimize;");
+        Logger.Info("== SQLite Optimize {i}", i2);
+
+        Logger.Info("<= PerformShutdown");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -91,6 +121,8 @@ public class RecipeFriendsDbContext : DbContext
             }
         }
     }
+
+
 }
 
 public class DateTimeToUtcConverter : ValueConverter<DateTime, DateTime>

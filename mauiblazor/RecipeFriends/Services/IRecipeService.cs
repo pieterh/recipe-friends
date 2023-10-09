@@ -6,7 +6,9 @@ public interface IRecipeService
 {
     Task<RecipeInfo[]> GetRecipesAsync(CancellationToken cancellationToken);
     Task<RecipeDetails> GetRecipeDetailsAsync(int id, CancellationToken cancellationToken);
+    Task<ImageData> GetImageDataAsync(int id, CancellationToken cancellationToken);
     Task<bool> SaveRecipeDetailsAsync(RecipeDetails recipeDetails, CancellationToken cancellationToken);
+    Task<bool> SaveImageDataAsync(int recipeId, ImageData img, CancellationToken cancellationToken);
 
     Task<TagInfo[]> GetTagsAsync(CancellationToken cancellationToken);
     Task<EquipmentInfo[]> GetEquipmentAsync(CancellationToken cancellationToken);

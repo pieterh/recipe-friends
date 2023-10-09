@@ -2,6 +2,7 @@
 using RecipeFriends.Shared.Data;
 using RecipeFriends.Shared.Data.Models;
 using RecipeFriends.Shared.DTO;
+using Image = RecipeFriends.Shared.Data.Models.Image;
 
 namespace RecipeFriends.Services;
 
@@ -26,6 +27,20 @@ public class RecipeService : IRecipeService
         }
         ;
         return MapToRecipeDetailsDTO(recipe);
+    }
+
+    public async Task<ImageData> GetImageDataAsync(
+        int id,
+        CancellationToken cancellationToken
+    )
+    {
+        var image = await _context.Images.FindAsync(id);
+        if (image == null)
+        {
+            return null;
+        }
+        ;
+        return MapToImageDataDTO(image);
     }
 
     public async Task<RecipeInfo[]> GetRecipesAsync(CancellationToken cancellationToken)
@@ -212,6 +227,18 @@ public class RecipeService : IRecipeService
         }
     }
 
+    public async Task<bool> SaveImageDataAsync(int recipeId, ImageData img, CancellationToken cancellationToken){
+
+        var recipe = await _context.Recipes.FindAsync(recipeId, cancellationToken);
+
+        if (recipe == null)
+            return false;
+
+        recipe.Images.Add(MapImageDataDTOToImage(img));
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     public async Task<TagInfo[]> GetTagsAsync(CancellationToken cancellationToken)
     {
         var tags = await _context.Tags.ToListAsync(cancellationToken: cancellationToken);
@@ -242,7 +269,15 @@ public class RecipeService : IRecipeService
 
     #region Map Model To DTO
 
-
+    private ImageData MapToImageDataDTO(Image image){
+        var result = new ImageData() {
+            Id = image.Id,
+            Name = image.Name,
+            Title = image.Title,
+            Data = image.Data
+        };
+        return result;
+    }
 
 
     private RecipeDetails MapToRecipeDetailsDTO(Recipe recipe)
@@ -251,7 +286,9 @@ public class RecipeService : IRecipeService
         _context.Entry(recipe).Collection(r => r.Ingredients).Load();
         _context.Entry(recipe).Collection(r => r.Tags).Load();
         _context.Entry(recipe).Collection(r => r.Equipment).Load();
+        _context.Entry(recipe).Collection(r => r.Images).Load();
         _context.Entry(recipe).Reference(r => r.Category).Load();
+
         return new RecipeDetails
         {
             Id = recipe.Id,
@@ -342,6 +379,16 @@ public class RecipeService : IRecipeService
         existingRecipe.Directions = recipeDTO.Directions;
         existingRecipe.PreparationTime = recipeDTO.PreparationTime;
         existingRecipe.CookingTime = recipeDTO.CookingTime;
+    }
+    private Image MapImageDataDTOToImage(ImageData dto)
+    {
+        var model = new Image() {
+            Id = dto.Id,
+            Name = dto.Name,
+            Title = dto.Title,
+            Data = dto.Data
+        };
+        return model;
     }
     #endregion  Map DTO to Model
 }

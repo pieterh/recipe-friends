@@ -1,5 +1,6 @@
-﻿using System.Xml;
-using Microsoft.EntityFrameworkCore;
+﻿using System.Reflection;
+using System.Xml;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
 
@@ -12,8 +13,8 @@ using NLog.Extensions.Logging;
 
 using RecipeFriends.Services;
 using RecipeFriends.Shared.Data;
-using System.Reflection;
-using Microsoft.Maui.Controls.PlatformConfiguration;
+using MudBlazor;
+using System.Globalization;
 
 namespace RecipeFriends;
 
@@ -23,6 +24,9 @@ public static class MauiProgram
 
     public static MauiApp CreateMauiApp()
     {
+
+        //CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.CreateSpecificCulture("de");
+
         // Ensure that the directory for our documents does exist
         Directory.CreateDirectory(RecipeFriendsService.DocumentsPath);
 
@@ -57,8 +61,8 @@ public static class MauiProgram
                                 var logger = NLog.LogManager.GetCurrentClassLogger();
                                 logger.Error("WillTerminate");
                                 Console.WriteLine("WillTerminate");
-                                var ctx = new RecipeFriendsDbContext();
-                                ctx.Checkpoint();
+                                using var ctx = new RecipeFriendsDbContext();
+                                ctx.PerformShutdown();
                             }
                         )
                 );
@@ -70,8 +74,8 @@ public static class MauiProgram
                             {
                                 logger.Error("OnClosed");
                                 Console.WriteLine("OnClosed");
-                                var ctx = new RecipeFriendsDbContext();
-                                ctx.Checkpoint();
+                                using var ctx = new RecipeFriendsDbContext();
+                                ctx.PerformShutdown();
                             }
                         )
                 );
@@ -110,9 +114,21 @@ public static class MauiProgram
             logger.Error(args.Exception, $"In FirstChanceException {Environment.NewLine}");
         };
 
-        builder.Services.AddMudServices();
+        builder.Services.AddMudServices(config =>
+        {
+            config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopCenter;
 
-        builder.Services.AddSingleton<IRecipeFriendsService, RecipeFriendsService>();
+            config.SnackbarConfiguration.PreventDuplicates = true;
+            config.SnackbarConfiguration.NewestOnTop = false;
+            config.SnackbarConfiguration.ShowCloseIcon = true;
+            config.SnackbarConfiguration.VisibleStateDuration = 10000;
+            config.SnackbarConfiguration.HideTransitionDuration = 500;
+            config.SnackbarConfiguration.ShowTransitionDuration = 500;
+            config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+        });
+
+        builder.Services.AddTransient<MudLocalizer, MudLocalizerImplementation>();
+        builder.Services.AddSingleton<IRecipeFriendsService, RecipeFriendsService>(); 
         builder.Services.AddDbContext<RecipeFriendsDbContext>();
         builder.Services.AddSingleton<IRecipeService, RecipeService>();
         builder.Services.AddSingleton<IDocumentService, DocumentService>();
@@ -122,20 +138,9 @@ public static class MauiProgram
 
         var app = builder.Build();
 
-        using (var scope = app.Services.CreateScope())
-        {
-            services = scope.ServiceProvider;
-            try
-            {
-                var context = services.GetRequiredService<RecipeFriendsDbContext>();
-                context.Database.Migrate(); // Apply migrations
-            }
-            catch (Exception ex)
-            {
-                // Log the exception or terminate the application based on your needs
-                logger.Error(ex, "Problem migrating database");
-            }
-        }
+        using var ctx = new RecipeFriendsDbContext();
+        ctx.PerformInitialization();
+
         return app;
     }
 
