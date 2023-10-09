@@ -55,6 +55,8 @@
 
     <ItemGroup>
         <Content Remove="Resources/Embedded/NLog.config" />
+        <None Remove="Components/FileDropZone/FileDrop.razor.css" />
+        <Compile Include="Components/FileDropZone/FileDropZone.razor.css" />
         <EmbeddedResource Include="Resources/Embedded/NLog.config" />
     </ItemGroup>
 

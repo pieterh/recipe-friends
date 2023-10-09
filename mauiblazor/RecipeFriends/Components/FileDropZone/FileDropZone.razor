@@ -1,0 +1,40 @@
+﻿<MudElement>
+    <MudFileUpload T="IReadOnlyList<IBrowserFile>" OnFilesChanged="OnInputFileChanged" AppendMultipleFiles Hidden="false" Class="flex-1" InputClass="absolute mud-width-full mud-height-full overflow-hidden z-20" InputStyle="opacity:0"
+                @ondragenter="@SetDragClass" @ondragleave="@ClearDragClass" @ondragend="@ClearDragClass" Style="margin-top:0px" >
+        <ButtonTemplate>
+            <MudPaper Height="300px" Outlined="true" Class="@DragClass">
+                <MudText Typo="Typo.h6">Drag and drop files here or click</MudText>
+            </MudPaper>
+        </ButtonTemplate>
+    </MudFileUpload>
+</MudElement>    
+
+@code {
+
+    [Parameter] public EventCallback<IBrowserFile> OnFileAdded { get; set; }
+        
+    private static string DefaultDragClass = "relative rounded-lg border-2 border-dashed mud-width-full mud-height-full z-10";
+    private string DragClass = DefaultDragClass;
+
+    private async void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        ClearDragClass();
+        var files = e.GetMultipleFiles();
+        foreach (var file in files)
+        {
+            await OnFileAdded.InvokeAsync(file);
+        }
+
+        // we are in an event and changing data. Notify that the state is changed and the UI will be redrawn properly
+        StateHasChanged();
+    }
+    private void SetDragClass()
+    {
+        DragClass = $"{DefaultDragClass} mud-border-primary";
+    }
+
+    private void ClearDragClass()
+    {
+        DragClass = DefaultDragClass;
+    }
+}

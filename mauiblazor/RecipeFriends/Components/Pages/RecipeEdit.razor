@@ -1,6 +1,7 @@
 ﻿@page "/recipe/edit/{Id:int}"
 @using RecipeFriends.Shared.DTO
 @using RecipeFriends.Components.TagBox
+@using RecipeFriends.Components.FileDropZone
 @using RecipeFriends.Data
 @using RecipeFriends.Services
 
@@ -82,37 +83,34 @@
                     <MudTabPanel Text="Equipment">
                         <TagBox TInfo="EquipmentInfo" AllItems="@allEquipment" Items="recipeDetails.Equipment" ></TagBox> 
                     </MudTabPanel>
-                    <MudTabPanel Text="Directions">
-                        
-                            <MudPaper Height="329px" xs="12">                       
-                                <MarkdownEditor MaxHeight="225px" @bind-Value="@recipeDetails.Directions" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })'/>                       
-                            </MudPaper>
-                        
+                    <MudTabPanel Text="Directions">                        
+                        <MudPaper Height="329px" xs="12">                       
+                            <MarkdownEditor MaxHeight="225px" @bind-Value="@recipeDetails.Directions" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })'/>                       
+                        </MudPaper>
                     </MudTabPanel>
                     <MudTabPanel Text="Images">  
                         <MudGrid>
                             <MudItem xs="12">
                                 <MudGrid Justify="Justify.FlexStart">
-                                    @foreach(var image in images)
+                                    @foreach(var image in imagesToShow)
                                     {   
-                                        <MudItem xs="3">                                           
-                                            <MudImage Src="@GetDataURL(image.Name, image.Data)" Alt="@image.Title" Elevation="25" Class="rounded-lg" style="max-height:300px;max-width:300px;height:auto;width:auto;" />
-                                           
+                                        <MudItem xs="3">
+                                            <MudImage Src="@GetDataURL(image.Name, image.Data)" Alt="@image.Title" Elevation="25" Class="rounded-lg" style="max-height:200px;max-width:200px;height:auto;width:auto;" />
                                         </MudItem>
                                     }
+                                    <MudItem xs="3">
+                                        <FileDropZone OnFileAdded="HandleFileAdded"></FileDropZone>
+                                    </MudItem>
                                 </MudGrid>
                             </MudItem>
                         </MudGrid>                      
-                        <MudToolBar DisableGutters="true" Class="gap-4">
-                            <MudButton OnClick="AddImages" Color="Color.Primary" Variant="Variant.Filled">Add</MudButton>
-                        </MudToolBar>
                     </MudTabPanel>  
                     <MudTabPanel Text="Notes">                        
-                            <MudPaper Height="329px" xs="12">                       
-                                <MarkdownEditor MaxHeight="225px" @bind-Value="@recipeDetails.Notes" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })'/>                       
-                            </MudPaper>                        
-                    </MudTabPanel>                     
-                </MudTabs>          
+                        <MudPaper Height="329px" xs="12">
+                            <MarkdownEditor MaxHeight="225px" @bind-Value="@recipeDetails.Notes" HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })'/>
+                        </MudPaper>
+                    </MudTabPanel>
+                </MudTabs>
             </EditForm>
             @if (!string.IsNullOrEmpty(saveStatusMessage))
             {
@@ -144,9 +142,11 @@
     private List<CategoryInfo> allCategories;
     private List<MeasurementInfo> allMeasurements;
     
-    private List<ImageData> images = new List<ImageData>();
+    private List<ImageData> imagesToShow = new List<ImageData>();
+    private List<ImageData> orgImages = new List<ImageData>();
     private List<ImageData> newImages = new List<ImageData>();
     private List<ImageData> removedImages = new List<ImageData>();
+
 
     private string saveStatusMessage = string.Empty;
 
@@ -172,10 +172,12 @@
 
         foreach(var img in recipeDetails.Images){
             var data = await RecipeService.GetImageDataAsync(img.Id, CancellationToken.None);
-            images.Add(data);
+            orgImages.Add(data);
         }
+
+        imagesToShow.AddRange(orgImages);
     }
-// custom sort by name length
+    // custom sort by name length
     private Func<IngredientDetails, object> _sortBy => x =>
     {
         return x.Order;
@@ -220,9 +222,6 @@
         recipeDetails.Ingredients.Add(newIngredient);
     }
 
-
-    private List<ImageData> imagesToAdd = new List<ImageData>();
-
     private async Task HandleFileAdded(IBrowserFile file)
     {
 
@@ -244,37 +243,25 @@
                 Title = file.Name,
                 Data = ms.ToArray()
             };
-            imagesToAdd.Add(image);            
+            newImages.Add(image);       
+
+            List<ImageData> resultList = new List<ImageData>(orgImages);
+            foreach (ImageData removedImage in removedImages)
+            {
+                resultList.Remove(removedImage);
+            }
+            resultList.AddRange(newImages);
+            imagesToShow = resultList;
+
         }catch(System.IO.IOException ioe)
         {
             Logger.Error(ioe, "Problem saving attachments");
         }
 
         Logger.Info($"File {file.Name} added.");
-    }
 
-
-    private async void AddImages()
-    {
-        imagesToAdd.Clear();
-
-        var parameters = new DialogParameters<AddImages>();
-        parameters.Add("OnFileAdded", new EventCallback<IBrowserFile>(this, HandleFileAdded));
-
-        var options = new DialogOptions
-            {
-                MaxWidth = MaxWidth.Medium,
-                FullWidth = true,
-                DisableBackdropClick = true,
-                CloseOnEscapeKey = true
-            };
-        var dialog = DialogService.Show<AddImages>("uh", parameters, options);
-        var r = await dialog.Result;
-        if (!r.Canceled && imagesToAdd.Count > 0){
-            images.AddRange(imagesToAdd);
-            newImages.AddRange(imagesToAdd);
-        }
-        imagesToAdd.Clear();
+        // we are in an event and changing data. Notify that the state is changed and the UI will be redrawn properly
+        StateHasChanged();
     }
 
     private void Cancel()
