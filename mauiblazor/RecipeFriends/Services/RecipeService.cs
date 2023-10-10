@@ -269,15 +269,7 @@ public class RecipeService : IRecipeService
 
     #region Map Model To DTO
 
-    private ImageData MapToImageDataDTO(Image image){
-        var result = new ImageData() {
-            Id = image.Id,
-            Name = image.Name,
-            Title = image.Title,
-            Data = image.Data
-        };
-        return result;
-    }
+
 
 
     private RecipeDetails MapToRecipeDetailsDTO(Recipe recipe)
@@ -304,17 +296,13 @@ public class RecipeService : IRecipeService
             Equipment = recipe.Equipment.Select(rt => new EquipmentInfo() { Id = rt.Id, Name = rt.Name }).ToList(),
             Images = recipe.Images
                 .Select(
-                    rt =>
-                        new ImageInfo()
-                        {
-                            Id = rt.Id,
-                            Title = rt.Title,
-                            Name = rt.Name
-                        }
+                    rt => MapToImageInfoDTO(rt)
                 )
                 .ToList()
         };
     }
+
+
 
     private RecipeInfo MapToRecipeInfoDTO(Recipe recipe)
     {
@@ -346,6 +334,28 @@ public class RecipeService : IRecipeService
             Measurement = MapToMeasurementDTO(ingredient.MeasurementNew),
             Order = ingredient.Order
         };
+    }
+
+    private static ImageInfo MapToImageInfoDTO(Image image)
+    {
+        return new ImageInfo()
+        {
+            Id = image.Id,
+            Order = image.Order,
+            Title = image.Title,
+            Name = image.Name
+        };
+    }
+
+    private static ImageData MapToImageDataDTO(Image image){
+        var result = new ImageData() {
+            Id = image.Id,
+            Order = image.Order,
+            Name = image.Name,
+            Title = image.Title,
+            Data = image.Data
+        };
+        return result;
     }
 
     private TagInfo MapToTagDTO(Tag tag)
@@ -384,6 +394,7 @@ public class RecipeService : IRecipeService
     {
         var model = new Image() {
             Id = dto.Id,
+            Order = dto.Order,
             Name = dto.Name,
             Title = dto.Title,
             Data = dto.Data

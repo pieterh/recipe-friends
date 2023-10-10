@@ -1,16 +1,20 @@
-﻿<MudElement>
+﻿<MudElement Height="100%" style="@Style">
     <MudFileUpload T="IReadOnlyList<IBrowserFile>" OnFilesChanged="OnInputFileChanged" AppendMultipleFiles Hidden="false" Class="flex-1" InputClass="absolute mud-width-full mud-height-full overflow-hidden z-20" InputStyle="opacity:0"
-                @ondragenter="@SetDragClass" @ondragleave="@ClearDragClass" @ondragend="@ClearDragClass" Style="margin-top:0px" >
-        <ButtonTemplate>
-            <MudPaper Height="300px" Outlined="true" Class="@DragClass">
-                <MudText Typo="Typo.h6">Drag and drop files here or click</MudText>
-            </MudPaper>
+                @ondragenter="@SetDragClass" @ondragleave="@ClearDragClass" @ondragend="@ClearDragClass" 
+                Style="margin-top:0px; height:100%" >
+        <ButtonTemplate >
+            <span id="a">
+                <MudPaper Height="100%" Outlined="true" Class="@DragClass">
+                    <MudText Typo="Typo.h6">Drag and drop files here or click</MudText>
+                </MudPaper>
+            </span>
         </ButtonTemplate>
     </MudFileUpload>
 </MudElement>    
 
 @code {
-
+    [Parameter]
+    public string Style { get; set; }
     [Parameter] public EventCallback<IBrowserFile> OnFileAdded { get; set; }
         
     private static string DefaultDragClass = "relative rounded-lg border-2 border-dashed mud-width-full mud-height-full z-10";

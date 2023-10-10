@@ -93,17 +93,6 @@
                         <MudGrid>
                             <MudItem xs="12">
                                 <ImageGallery ImagesToShow="@imagesToShow" OnFileAdded="HandleFileAdded"></ImageGallery>
-                                @* <MudGrid Justify="Justify.FlexStart">
-                                    @foreach(var image in imagesToShow)
-                                    {   
-                                        <MudItem xs="3">
-                                            <MudImage Src="@GetDataURL(image.Name, image.Data)" Alt="@image.Title" Elevation="25" Class="rounded-lg" style="max-height:200px;max-width:200px;height:auto;width:auto;" />
-                                        </MudItem>
-                                    }
-                                    <MudItem xs="3">
-                                        <FileDropZone OnFileAdded="HandleFileAdded"></FileDropZone>
-                                    </MudItem>
-                                </MudGrid> *@
                             </MudItem>
                         </MudGrid>                      
                     </MudTabPanel>  

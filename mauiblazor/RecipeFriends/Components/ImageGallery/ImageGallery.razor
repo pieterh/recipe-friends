@@ -1,29 +1,97 @@
 ﻿@using RecipeFriends.Components.FileDropZone
+@using NLog;
+
 
 <MudElement>
-    <MudGrid Justify="Justify.FlexStart">
-        @foreach(var image in ImagesToShow)
-        {   
-            <MudItem xs="3">
-                <MudImage Src="@GetDataURL(image.Name, image.Data)" Alt="@image.Title" Elevation="25" Class="rounded-lg" style="max-height:200px;max-width:200px;height:auto;width:auto;" />
+    <div>
+        <MudGrid Justify="Justify.FlexStart">
+            <MudItem xs="12">
+            
+                <MudDropContainer T="ImageData" Items="_list" CanDropClass="mud-border-info" NoDropClass="mud-border-error" 
+                        CanDrop=@( (item,identifier ) => item.Order.ToString() != @"-11" )
+                        ItemsSelector=@( (item, column) => item.Order.ToString() == column )
+                        ItemDropped="ItemUpdated" Class="border-2 border-solid mud-border-lines-default">
+                    <ChildContent>
+                        <MudGrid Justify="Justify.FlexStart" Identifier="mudgridje">
+                            @{ 
+                                int c = 1;
+                                foreach(var image in _list)
+                                {   
+                                    // capture value in local variable
+                                    int zoneIdentifier = c;
+                                    <MudItem xs="3" Identifier="muditempje">
+                                        <MudDropZone T="ImageData" Identifier="@zoneIdentifier.ToString()" 
+                                            AllowReorder="true"                            
+                                            DraggingClass="mud-theme-success" Class="d-flex justify-center align-center border-2 border-solid docs-gray-bg mud-border-lines-default"/>
+                                    </MudItem>
+                                    c++;
+                                }
+                            }
+                        </MudGrid> 
+                    </ChildContent>
+                    <ItemRenderer>
+                        <MudImage Src="@GetDataURL(context.Name, context.Data)" Alt="@context.Title" Elevation="25" Class="rounded-lg" style="max-height:200px;max-width:200px;height:auto;width:auto;" />
+                    </ItemRenderer>
+                </MudDropContainer>
             </MudItem>
-        }
-        <MudItem xs="3">
-            <FileDropZone OnFileAdded="HandleFileAdded"></FileDropZone>
-        </MudItem>
-    </MudGrid>
+            <MudItem xs="12" Class="custom-muditem" style="overflow: hidden;">
+                <FileDropZone OnFileAdded="HandleFileAdded" ></FileDropZone>
+            </MudItem>
+        </MudGrid>
+    </div>
 </MudElement>
 
 @code {
-    [Parameter] public List<ImageData> ImagesToShow { get; set; }
+
+    [Parameter] public List<ImageData> ImagesToShow 
+        { 
+            get {
+                return _imagesToShow;
+            }
+            set {
+                _imagesToShow = value;
+                _list = _imagesToShow.OrderBy(x => x.Order);
+            } 
+        }
     [Parameter] public EventCallback<IBrowserFile> OnFileAdded { get; set; }
+
+
+    public List<ImageData> _imagesToShow = new List<ImageData>();
+    public IOrderedEnumerable<ImageData> _list = new List<ImageData>().OrderBy(x => x.Order);
+
+    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Logger.Info("ImageGallery => init");
+    }
+
+	private void ItemUpdated(MudItemDropInfo<ImageData> info)
+	{
+        try
+        {
+            //info.Item.Status = info.DropzoneIdentifier;
+            Logger.Info("ImageGallery => ItemUpdated");
+            int from = info.Item.Order;
+            int to = int.Parse(info.DropzoneIdentifier);
+
+            var dropped = info.Item;
+            var cur = _list.First(x => x.Order == to);
+            cur.Order = from;
+            dropped.Order = to;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Something is wrong handling the added file");
+        }
+	}
 
     private async Task HandleFileAdded(IBrowserFile file)
     {
         await OnFileAdded.InvokeAsync(file);
 
         // we are in an event and changing data. Notify that the state is changed and the UI will be redrawn properly
-        StateHasChanged();
+        //StateHasChanged();
     }
 
     public static string GetDataURL(string fileName, byte[] imgData)
