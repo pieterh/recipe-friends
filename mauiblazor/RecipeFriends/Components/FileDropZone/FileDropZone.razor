@@ -1,7 +1,13 @@
 ﻿<MudElement Height="100%" style="@Style">
-    <MudFileUpload T="IReadOnlyList<IBrowserFile>" OnFilesChanged="OnInputFileChanged" AppendMultipleFiles Hidden="false" Class="flex-1" InputClass="absolute mud-width-full mud-height-full overflow-hidden z-20" InputStyle="opacity:0"
-                @ondragenter="@SetDragClass" @ondragleave="@ClearDragClass" @ondragend="@ClearDragClass" 
-                Style="margin-top:0px; height:100%" >
+    <MudFileUpload T="IReadOnlyList<IBrowserFile>" 
+            OnFilesChanged=OnInputFileChanged 
+            AppendMultipleFiles 
+            Hidden="false" 
+            Class="flex-1" 
+            InputClass="absolute mud-width-full mud-height-full overflow-hidden z-20" 
+            InputStyle="opacity:0"
+            @ondragenter="@SetDragClass" @ondragleave="@ClearDragClass" @ondragend="@ClearDragClass" 
+            Style="margin-top:0px; height:100%" >
         <ButtonTemplate >
             <span id="a">
                 <MudPaper Height="100%" Outlined="true" Class="@DragClass">
@@ -13,24 +19,29 @@
 </MudElement>    
 
 @code {
-    [Parameter]
-    public string Style { get; set; }
+    [Parameter] public string Style { get; set; }
     [Parameter] public EventCallback<IBrowserFile> OnFileAdded { get; set; }
-        
+
+    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
     private static string DefaultDragClass = "relative rounded-lg border-2 border-dashed mud-width-full mud-height-full z-10";
     private string DragClass = DefaultDragClass;
 
-    private async void OnInputFileChanged(InputFileChangeEventArgs e)
+    private async Task OnInputFileChanged(InputFileChangeEventArgs e)
     {
-        ClearDragClass();
-        var files = e.GetMultipleFiles();
-        foreach (var file in files)
-        {
-            await OnFileAdded.InvokeAsync(file);
-        }
+        try{
+            ClearDragClass();
+            var files = e.GetMultipleFiles();
+            foreach (var file in files)
+            {
+                await OnFileAdded.InvokeAsync(file);
+            }
 
-        // we are in an event and changing data. Notify that the state is changed and the UI will be redrawn properly
-        StateHasChanged();
+            // we are in an event and changing data. Notify that the state is changed and the UI will be redrawn properly
+            StateHasChanged();
+        }catch(Exception ex){
+            Logger.Error(ex, "Oepsie executing OnInputFileChanged");
+        }        
     }
     private void SetDragClass()
     {
