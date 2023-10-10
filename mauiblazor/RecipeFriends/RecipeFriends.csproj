@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
-        <TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
+        <TargetFrameworks>net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
         <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
 
         <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
@@ -61,17 +61,17 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.0-rc.1.23419.6" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0-rc.1.23419.6" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0-rc.1.23419.6">
+        <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.0-rc.2.23480.1" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0-rc.2.23480.1" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0-rc.2.23480.1">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0-rc.1.23419.6" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0-rc.1.23419.4" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0-rc.1.23419.4" />
-        <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.0-rc.1.9171" />
-        <PackageReference Include="Microsoft.AspNetCore.Components" Version="8.0.0-rc.1.23421.29" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0-rc.2.23480.1" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0-rc.2.23479.6" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0-rc.2.23479.6" />
+        <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.0-rc.2.9373+sha.19fc25a562-azdo.8494874" />
+        <PackageReference Include="Microsoft.AspNetCore.Components" Version="8.0.0-rc.2.23480.2" />
         <PackageReference Include="SixLabors.Fonts" Version="2.0.0" />
         <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />    
         <PackageReference Include="CommunityToolkit.Maui" Version="5.3.0" />
