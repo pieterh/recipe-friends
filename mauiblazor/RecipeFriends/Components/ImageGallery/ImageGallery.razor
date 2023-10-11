@@ -1,37 +1,48 @@
-﻿@using RecipeFriends.Components.FileDropZone
-@using NLog;
+﻿@implements IDisposable
 
+@using RecipeFriends.Components.FileDropZone
+@using NLog;
 
 <MudElement>
     <div>
+        <MudToolBar>
+            <MudIconButton Icon="@Icons.Material.Outlined.Delete" Color="Color.Inherit" Class="mr-5" 
+                OnClick="@(() => DeleteSelected())" 
+                Disabled="@ImagesSelected"/>
+            <MudIconButton Icon="@Icons.Material.Outlined.Save" Color="Color.Inherit" Class="mr-5" Disabled="true" />
+        </MudToolBar>
         <MudGrid Justify="Justify.FlexStart">
             <MudItem xs="12">
-
-                <MudDropContainer T="ImageData" Items="_list" CanDropClass="mud-border-info"
-                    NoDropClass="mud-border-error" CanDrop=@( (item,identifier ) => item.Order.ToString() != @"-11" )
-                    ItemsSelector=@( (item, column) => item.Order.ToString() == column ) ItemDropped="ItemUpdated"
+                <MudDropContainer T="ImageData" Items="_list" 
+                    CanDropClass="mud-border-info" NoDropClass="mud-border-error" 
+                    ItemsSelector=@( (item, column) => item.Order.ToString() == column ) 
+                    ItemDropped="ItemUpdated"
                     Class="border-2 border-solid mud-border-lines-default">
                     <ChildContent>
-                        <MudGrid Justify="Justify.FlexStart" Identifier="mudgridje">
+                        <MudGrid Justify="Justify.FlexStart">
                             @{
                                 int c = 1;
                                 foreach (var image in _list)
                                 {
                                     // capture value in local variable
                                     int zoneIdentifier = c;
-                                    <MudItem xs="3" Identifier="muditempje">
+                                    <MudItem xs="3">
                                         <MudDropZone T="ImageData" Identifier="@zoneIdentifier.ToString()" AllowReorder="true"
                                             DraggingClass="mud-theme-success"
-                                            Class="d-flex justify-center align-center border-2 border-solid docs-gray-bg mud-border-lines-default" />
-                                    </MudItem>
+                                            Class="d-flex justify-center align-center border-none docs-gray-bg mud-border-lines-default" />
+                                    </MudItem> 
                                     c++;
                                 }
                             }
                         </MudGrid>
                     </ChildContent>
                     <ItemRenderer>
-                        <MudImage Src="@GetDataURL(context.Name, context.Data)" Alt="@context.Title" Elevation="25"
-                            Class="rounded-lg" style="max-height:200px;max-width:200px;height:auto;width:auto;" />
+                        <div class="image-container">
+                            <MudImage Src="@GetDataURL(context)" Alt="@context.Title" Elevation="25"
+                                Class="rounded-lg" style="max-height:200px;max-width:200px;height:auto;width:auto;" />
+                            <MudCheckBox T="bool" Color="Color.Primary" style="position:absolute;top:0" 
+                                CheckedChanged="((e) => CheckedChanged(context, e))" />
+                        </div>
                     </ItemRenderer>
                 </MudDropContainer>
             </MudItem>
@@ -43,39 +54,62 @@
 </MudElement>
 
 @code {
-
-    [Parameter]
-    public List<ImageData> ImagesToShow
-    {
-        get
-        {
-            return _imagesToShow;
-        }
-        set
-        {
-            _imagesToShow = value;
-            _list = _imagesToShow.OrderBy(x => x.Order);
-        }
-    }
+    [Parameter] public List<ImageData> ImagesToShow { get; set; } = new List<ImageData>();
     [Parameter] public EventCallback<IBrowserFile> OnFileAdded { get; set; }
+    [Parameter] public EventCallback<string[]> OnFilesRemoved { get; set; }
 
-
-    public List<ImageData> _imagesToShow = new List<ImageData>();
     public IOrderedEnumerable<ImageData> _list = new List<ImageData>().OrderBy(x => x.Order);
+    private IDictionary<string, string> _dataUrlCache = new Dictionary<string,string>();
+    private IDictionary<string, bool> _selectedImages = new Dictionary<string,bool>();
+    private bool ImagesSelected { get { return _selectedImages.Count == 0 ; } }
 
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-    protected override async Task OnInitializedAsync()
+    public override async Task SetParametersAsync(ParameterView parameters)
     {
-        Logger.Info("ImageGallery => init");
+        Logger.Trace("ImageGallery => SetParametersAsync");
+        Logger.Trace($"ImageGallery => SetParametersAsync: ImagesToShow count: {ImagesToShow.Count}, _list count: {_list.Count()}");
+        await base.SetParametersAsync(parameters);
+    }
+
+    protected override void OnInitialized()
+    {
+        Logger.Trace("ImageGallery => OnInitialized");
+    }
+
+    protected override void OnParametersSet()
+    {
+        Logger.Trace("ImageGallery => OnParametersSet");
+        _list = ImagesToShow.OrderBy(x => x.Order);
+        Logger.Trace($"ImageGallery => OnParametersSet: ImagesToShow count: {ImagesToShow.Count}, _list count: {_list.Count()}");
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        Logger.Trace($"ImageGallery => OnAfterRender({firstRender})");
+    }
+
+    private void DeleteSelected() {
+        var lstHashes = _selectedImages.Where(x => x.Value == true).Select(x => x.Key).ToArray();
+        OnFilesRemoved.InvokeAsync(lstHashes);
+    }
+
+    private void CheckedChanged(ImageData image, bool check)
+    {
+        Logger.Trace($"CheckedChanged");
+        if (!check && _selectedImages.ContainsKey(image.HashValue)){
+            _selectedImages.Remove(image.HashValue);
+        }
+        if (check){
+            _selectedImages[image.HashValue] = true;
+        }
     }
 
     private void ItemUpdated(MudItemDropInfo<ImageData> info)
     {
         try
         {
-            //info.Item.Status = info.DropzoneIdentifier;
-            Logger.Info("ImageGallery => ItemUpdated");
+            Logger.Trace("ImageGallery => ItemUpdated");
             int from = info.Item.Order;
             int to = int.Parse(info.DropzoneIdentifier);
 
@@ -83,6 +117,7 @@
             var cur = _list.First(x => x.Order == to);
             cur.Order = from;
             dropped.Order = to;
+            Logger.Trace("ImageGallery <= ItemUpdated");
         }
         catch (Exception ex)
         {
@@ -94,9 +129,11 @@
     {
         try
         {
+            Logger.Info("ImageGallery => HandleFileAdded");
             await OnFileAdded.InvokeAsync(file);
-            // we are in an event and changing data. Notify that the state is changed and the UI will be redrawn properly
-            StateHasChanged();
+            // Since we are not changing data and just bubble up the event, there is no state changed and nothing needs to be triggered.
+            // StateHasChanged();
+            Logger.Info("ImageGallery <= HandleFileAdded");
         }
         catch (Exception ex)
         {
@@ -104,11 +141,26 @@
         }
     }
 
-    public static string GetDataURL(string fileName, byte[] imgData)
+    public string GetDataURL(ImageData image)
+    {      
+        
+        if (_dataUrlCache.TryGetValue(image.HashValue, out var dataUrl)){
+            Logger.Trace("GetDataURL => cached");
+            return dataUrl;            
+        }
+        var generatedDataUrl = "data:image"
+            + Path.GetExtension(image.Name).Replace(".", "").ToLower()
+            + ";base64,"
+            + Convert.ToBase64String(image.Data);
+        _dataUrlCache[image.HashValue] = generatedDataUrl;
+        Logger.Info("GetDataURL => generated");
+        return generatedDataUrl;
+    }
+
+    void IDisposable.Dispose()
     {
-        return "data:image"
-        + Path.GetExtension(fileName).Replace(".", "").ToLower()
-        + ";base64,"
-        + Convert.ToBase64String(imgData);
+        // just make sure we get rid of refferences to bigger chuks of data when possible.
+        _dataUrlCache.Clear();
+        _list = new List<ImageData>().OrderBy(x => x.Order);
     }
 }

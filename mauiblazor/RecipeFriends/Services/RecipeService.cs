@@ -50,16 +50,22 @@ public class RecipeService : IRecipeService
         return r;
     }
 
-    public async Task<bool> SaveRecipeDetailsAsync(RecipeDetails recipeDTO, List<ImageData> newImages ,CancellationToken cancellationToken)
+    public async Task<bool> SaveRecipeDetailsAsync(RecipeDetails recipeDTO, List<ImageData> newImages, List<ImageData> deletedImages, CancellationToken cancellationToken)
     {
         try
         {
             Recipe recipe;
             if (recipeDTO.Id > 0)
             {
-                recipe  = await UpdateRecipeAsync(recipeDTO, cancellationToken);
+                recipe  = await UpdateRecipeAsync(recipeDTO, cancellationToken);                
                 if (recipe == null)
                     return false;
+                foreach(var delImage in deletedImages){
+                    var image = _context.Images.FirstOrDefault((x) => x.Id == delImage.Id);
+                    if (image != null){
+                        _context.Images.Remove(image);
+                    }
+                }
             }
             else
             {

@@ -38,7 +38,7 @@
                                             @bind-Value="recipeDetails.Category">
                                             @foreach (var cat in allCategories ?? Enumerable.Empty<CategoryInfo>())
                                             {
-                                                <MudSelectItem Value="cat" />
+                                                <MudSelectItem Value="@cat" />
                                             }
                                         </MudSelect>
                                         <TagBox TInfo="TagInfo" AllItems="@allTags" Items="recipeDetails.Tags"></TagBox>
@@ -76,7 +76,7 @@
                                                         Margin="@Margin.Dense">
                                                         @foreach (var measurement in allMeasurements)
                                                         {
-                                                            <MudSelectItem Value="measurement" />
+                                                            <MudSelectItem Value="@measurement" />
                                                         }
                                                     </MudSelect>
                                                 </EditTemplate>
@@ -98,8 +98,7 @@
                             <MudTabPanel Text="Images">
                                 <MudGrid>
                                     <MudItem xs="12">
-                                        <ImageGallery ImagesToShow="@imagesToShow" OnFileAdded=HandleFileAdded>
-                                        </ImageGallery>
+                                        <ImageGallery ImagesToShow="@_imagesToShow" OnFileAdded=HandleFileAdded OnFilesRemoved=HandleFilesRemoved/>                                        
                                     </MudItem>
                                 </MudGrid>
                             </MudTabPanel>
@@ -141,10 +140,10 @@
     private List<CategoryInfo> allCategories;
     private List<MeasurementInfo> allMeasurements;
 
-    private List<ImageData> imagesToShow = new List<ImageData>();
-    private List<ImageData> orgImages = new List<ImageData>();
-    private List<ImageData> newImages = new List<ImageData>();
-    private List<ImageData> removedImages = new List<ImageData>();
+    private List<ImageData> _imagesToShow = new List<ImageData>();
+    private List<ImageData> _orgImages = new List<ImageData>();
+    private List<ImageData> _newImages = new List<ImageData>();
+    private List<ImageData> _removedImages = new List<ImageData>();
 
 
     private string saveStatusMessage = string.Empty;
@@ -185,10 +184,10 @@
         foreach (var img in recipeDetails.Images)
         {
             var data = await RecipeService.GetImageDataAsync(img.Id, CancellationToken.None);
-            orgImages.Add(data);
+            _orgImages.Add(data);
         }
 
-        imagesToShow.AddRange(orgImages);
+        _imagesToShow = new List<ImageData>(_orgImages);
     }
     // custom sort by name length
     private Func<IngredientDetails, object> _sortBy => x =>
@@ -201,13 +200,15 @@
         if (recipeDetails != null)
         {
             foreach(var image in recipeDetails.Images){
-                var imageSource = orgImages.First(x => x.Id == image.Id);
-                image.Order = imageSource.Order;
-                image.Title = imageSource.Title;
-                image.Name = imageSource.Name;
+                var imageSource = _orgImages.FirstOrDefault(x => x.Id == image.Id);
+                if (imageSource != null){
+                    image.Order = imageSource.Order;
+                    image.Title = imageSource.Title;
+                    image.Name = imageSource.Name;
+                }
             }
-
-            bool success = await RecipeService.SaveRecipeDetailsAsync(recipeDetails, newImages, CancellationToken.None);
+            
+            bool success = await RecipeService.SaveRecipeDetailsAsync(recipeDetails, _newImages, _removedImages ,CancellationToken.None);
 
             if (success)
             {
@@ -222,6 +223,8 @@
             }
         }
     }
+
+
 
     private void AddIngredient()
     {
@@ -241,13 +244,34 @@
         recipeDetails.Ingredients.Add(newIngredient);
     }
 
+    private async Task HandleFilesRemoved(string[] hashes)
+    {
+        foreach(var hash in hashes){
+            var f1 = _newImages.FirstOrDefault((x) => x.HashValue == hash);
+            if (f1 != null){
+                _newImages.Remove(f1);
+            }else
+            {
+                var f2 = _orgImages.FirstOrDefault((x) => x.HashValue == hash);
+                if (f2 != null){
+                    _removedImages.Add(f2);
+                    _orgImages.Remove(f2);
+                }
+            }
+        }
+        UpdateList();
+
+        // we are in an event and changing data. Notify that the state is changed and the UI will be redrawn properly
+        StateHasChanged();
+    }
+
     private async Task HandleFileAdded(IBrowserFile file)
     {
-        Logger.Info($"=> HandleFileAdded {file?.Name}");
+        Logger.Info($"=> HandleFileAdded - {file?.Name} - adding.");
 
         try
         {
-            const int maxSizeBytes = 1024 * 1024 * 4;
+            const int maxSizeBytes = 1024 * 1024 * 7;
             if (file.Size >= maxSizeBytes)
             {
                 var msg = $"The file size is {file.Size} bytes and exceeded the maximum size of {maxSizeBytes}.";
@@ -256,12 +280,12 @@
                 return;
             }
 
-            int highestOrder0 = orgImages.Any() ? orgImages.Max(img => img.Order) : 0;
-            int highestOrder1 = newImages.Any() ? newImages.Max(img => img.Order) : 0;
-            int highestOrder2 = removedImages.Any() ? removedImages.Max(img => img.Order) : 0;
+            int highestOrder0 = _orgImages.Any() ? _orgImages.Max(img => img.Order) : 0;
+            int highestOrder1 = _newImages.Any() ? _newImages.Max(img => img.Order) : 0;
+            int highestOrder2 = _removedImages.Any() ? _removedImages.Max(img => img.Order) : 0;
             int highestOrder = Math.Max(highestOrder0, Math.Max(highestOrder1, highestOrder2));
 
-            using var stream = file.OpenReadStream();
+            using var stream = file.OpenReadStream(maxSizeBytes);
             using MemoryStream ms = new MemoryStream();
             await stream.CopyToAsync(ms, CancellationToken.None);
             var image = new ImageData()
@@ -272,16 +296,10 @@
                     Title = file.Name,
                     Data = ms.ToArray()
                 };
-            newImages.Add(image);
+            _newImages.Add(image);
 
-            List<ImageData> resultList = new List<ImageData>(orgImages);
-            foreach (ImageData removedImage in removedImages)
-            {
-                resultList.Remove(removedImage);
-            }
-            resultList.AddRange(newImages);
-            imagesToShow = resultList;
-            Logger.Info($"<= HandleFileAdded File {file.Name} added.");
+            UpdateList();
+            Logger.Info($"<= HandleFileAdded - {file.Name} - added.");
             // we are in an event and changing data. Notify that the state is changed and the UI will be redrawn properly
             StateHasChanged();
         }
@@ -295,9 +313,28 @@
         }
     }
 
+    private static void RenumberImages(IList<ImageData> images){
+        int c = 1;
+        foreach(var image in images.OrderBy(x => x.Order)){
+            image.Order = c;
+            c++;
+        }
+    }
+
+    private void UpdateList(){
+        List<ImageData> resultList = new List<ImageData>(_orgImages);
+        foreach (ImageData removedImage in _removedImages)
+        {
+            resultList.Remove(removedImage);
+        }
+        resultList.AddRange(_newImages);
+        RenumberImages(resultList);
+        _imagesToShow = resultList;
+    }
+
     private void Cancel()
     {
-        NavigationManager.NavigateTo("/recipe/list");
+        MudDialog.Close(DialogResult.Cancel);
     }
 
     public static string GetDataURL(string fileName, byte[] imgData)

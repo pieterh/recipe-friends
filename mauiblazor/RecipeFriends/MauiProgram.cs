@@ -127,8 +127,8 @@ public static class MauiProgram
             config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
         });
 
-        builder.Services.AddTransient<MudLocalizer, MudLocalizerImplementation>();
-        builder.Services.AddSingleton<IRecipeFriendsService, RecipeFriendsService>(); 
+         builder.Services.AddTransient<MudLocalizer, MudLocalizerImplementation>();
+        builder.Services.AddSingleton<IRecipeFriendsService, RecipeFriendsService>();  
         builder.Services.AddDbContext<RecipeFriendsDbContext>();
         builder.Services.AddSingleton<IRecipeService, RecipeService>();
         builder.Services.AddSingleton<IDocumentService, DocumentService>();

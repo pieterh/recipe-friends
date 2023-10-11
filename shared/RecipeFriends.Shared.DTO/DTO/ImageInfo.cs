@@ -31,7 +31,7 @@ public class ImageInfo
             if (order != value)
             {
                 order = value;
-                InvalidateHash();
+                //InvalidateHash();
             }
         }
     }
@@ -44,7 +44,7 @@ public class ImageInfo
             if (title != value)
             {
                 title = value;
-                InvalidateHash();
+                //InvalidateHash();
             }
         }
     }
@@ -72,21 +72,25 @@ public class ImageInfo
             }
             return hashValue;
         }
+        protected set
+        {
+            hashValue = value;
+        }
     }
 
-    private void InvalidateHash()
+    protected void InvalidateHash()
     {
-        hashValue = null;
+        HashValue = null;
     }
 
-    private void CalculateHash()
+    virtual protected void CalculateHash()
     {
         // Combine the values of Id, Order, Title, and Name to calculate the hash value
-        string combinedValues = $"{Id}{Order}{Title}{Name}";
-        hashValue = GetHash(combinedValues);
+        string combinedValues = $"{Id}{Name}";
+        HashValue = GetHash(combinedValues);
     }
 
-    private string GetHash(string input)
+    protected string GetHash(string input)
     {
         using (var hasher = System.Security.Cryptography.MD5.Create())
         {

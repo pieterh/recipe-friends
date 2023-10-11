@@ -3,3 +3,18 @@
     height: 150px;
 }
 
+.image-container {
+    position: relative; /* Relative positioning */
+    display: inline-block; /* Make the container's width fit its content */
+}
+
+.image-container MudCheckBox {
+    position: absolute; /* Absolute positioning */
+    top: 0; /* Positioned at the top */
+    left: 0; /* Positioned at the left */
+    z-index: 1; /* Ensure the checkbox is above the image */
+}
+
+.image-container MudImage {
+    /* If you need any specific styles for the image, place them here */
+}
