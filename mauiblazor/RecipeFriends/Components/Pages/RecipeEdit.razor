@@ -200,11 +200,14 @@
     {
         if (recipeDetails != null)
         {
-            bool success = await RecipeService.SaveRecipeDetailsAsync(recipeDetails, CancellationToken.None);
-            foreach (var img in newImages)
-            {
-                success = await RecipeService.SaveImageDataAsync(recipeDetails.Id, img, CancellationToken.None);
+            foreach(var image in recipeDetails.Images){
+                var imageSource = orgImages.First(x => x.Id == image.Id);
+                image.Order = imageSource.Order;
+                image.Title = imageSource.Title;
+                image.Name = imageSource.Name;
             }
+
+            bool success = await RecipeService.SaveRecipeDetailsAsync(recipeDetails, newImages, CancellationToken.None);
 
             if (success)
             {

@@ -45,51 +45,44 @@ public class RecipeService : IRecipeService
 
     public async Task<RecipeInfo[]> GetRecipesAsync(CancellationToken cancellationToken)
     {
-        var l = await _context.Recipes.Include(r => r.Tags).ToListAsync();
+        var l = await _context.Recipes.Include(r => r.Tags).ToListAsync(cancellationToken: cancellationToken);
         var r = l.Select(MapToRecipeInfoDTO).ToArray();
         return r;
     }
 
-    public async Task<bool> SaveRecipeDetailsAsync(RecipeDetails recipeDTO, CancellationToken cancellationToken)
+    public async Task<bool> SaveRecipeDetailsAsync(RecipeDetails recipeDTO, List<ImageData> newImages ,CancellationToken cancellationToken)
     {
-        using (var transaction = await _context.Database.BeginTransactionAsync(cancellationToken))
+        try
         {
-            try
+            Recipe recipe;
+            if (recipeDTO.Id > 0)
             {
-                if (recipeDTO.Id > 0)
-                {
-                    if (!await UpdateRecipeAsync(recipeDTO, cancellationToken))
-                        return false;
-                }
-                else
-                {
-                    InsertNewRecipe(recipeDTO);
-                }
-                await _context.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken); // Commit the transaction if all operations succeeded
-                return true;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                await transaction.RollbackAsync(cancellationToken); // Rollback any changes made during the transaction
-                if (!_context.Recipes.Any(e => e.Id == recipeDTO.Id))
-                {
+                recipe  = await UpdateRecipeAsync(recipeDTO, cancellationToken);
+                if (recipe == null)
                     return false;
-                }
-                else
-                {
-                    throw;
-                }
             }
-            catch (Exception)
+            else
             {
-                await transaction.RollbackAsync(cancellationToken); // Rollback for any other exception
-                throw; // Propagate the exception upwards
+                recipe = await InsertNewRecipe(recipeDTO);
+                if (recipe == null)
+                    return false;
             }
+
+            foreach (var img in newImages)
+            {
+                SaveImageDataAsync(recipe, img);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
         }
     }
 
-    private async Task<bool> UpdateRecipeAsync(
+    private async Task<Recipe> UpdateRecipeAsync(
         RecipeDetails recipeDTO,
         CancellationToken cancellationToken
     )
@@ -99,17 +92,18 @@ public class RecipeService : IRecipeService
             .FirstOrDefaultAsync(r => r.Id == recipeDTO.Id, cancellationToken);
 
         if (existingRecipe == null)
-            return false;
+            return existingRecipe;
 
         MapRecipeDTOToRecipe(recipeDTO, existingRecipe);
 
         UpdateRecipeTags(recipeDTO, existingRecipe);
         UpdateRecipeEquipment(recipeDTO, existingRecipe);
         UpdateRecipeIngredients(recipeDTO, existingRecipe);
-        return true;
+        UpdateRecipeImages(recipeDTO, existingRecipe);
+        return existingRecipe;
     }
 
-    private void InsertNewRecipe(RecipeDetails recipeDTO)
+    private async Task<Recipe> InsertNewRecipe(RecipeDetails recipeDTO)
     {
         var newRecipe = new Recipe()
         {
@@ -121,10 +115,12 @@ public class RecipeService : IRecipeService
             PreparationTime = recipeDTO.PreparationTime,
             CookingTime = recipeDTO.CookingTime
         };
-        _context.Recipes.Add(newRecipe);
+        await _context.Recipes.AddAsync(newRecipe);
         UpdateRecipeTags(recipeDTO, newRecipe);
         UpdateRecipeEquipment(recipeDTO, newRecipe);
         UpdateRecipeIngredients(recipeDTO, newRecipe);
+
+        return newRecipe;
     }
 
     private void UpdateRecipeTags(RecipeDetails recipeDTO, Recipe existingRecipe)
@@ -227,15 +223,31 @@ public class RecipeService : IRecipeService
         }
     }
 
-    public async Task<bool> SaveImageDataAsync(int recipeId, ImageData img, CancellationToken cancellationToken){
+    private void UpdateRecipeImages(RecipeDetails recipeDTO, Recipe existingRecipe)
+    {
+        foreach(var image in recipeDTO.Images){
+            var imgToUpdate = existingRecipe.Images.First(x => x.Id == image.Id);
+            imgToUpdate.Order = image.Order;
+            imgToUpdate.Title = image.Title;
+            imgToUpdate.Name = image.Name;
+        }
+    }
 
-        var recipe = await _context.Recipes.FindAsync(recipeId, cancellationToken);
+    public async Task<bool> SaveImageDataAsync(int recipeId, ImageData img, CancellationToken cancellationToken)
+    {
+        var recipe = await _context.Recipes.FindAsync(new object[] { recipeId }, cancellationToken: cancellationToken);
+        var retval = SaveImageDataAsync(recipe, img);
+        if (retval)
+            await _context.SaveChangesAsync(cancellationToken);
+        return retval;
+    }
 
+    internal bool SaveImageDataAsync(Recipe recipe, ImageData img)    {
         if (recipe == null)
             return false;
 
         recipe.Images.Add(MapImageDataDTOToImage(img));
-        await _context.SaveChangesAsync(cancellationToken);
+
         return true;
     }
 
@@ -245,7 +257,7 @@ public class RecipeService : IRecipeService
         return tags.Select(MapToTagDTO).ToArray();
     }
 
-   public async Task<EquipmentInfo[]> GetEquipmentAsync(CancellationToken cancellationToken)
+    public async Task<EquipmentInfo[]> GetEquipmentAsync(CancellationToken cancellationToken)
     {
         var equipment = await _context.Equipment.ToListAsync(cancellationToken: cancellationToken);
         return equipment.Select(MapToEquipmentDTO).ToArray();
@@ -347,8 +359,10 @@ public class RecipeService : IRecipeService
         };
     }
 
-    private static ImageData MapToImageDataDTO(Image image){
-        var result = new ImageData() {
+    private static ImageData MapToImageDataDTO(Image image)
+    {
+        var result = new ImageData()
+        {
             Id = image.Id,
             Order = image.Order,
             Name = image.Name,
@@ -363,7 +377,7 @@ public class RecipeService : IRecipeService
         return new TagInfo { Id = tag.Id, Name = tag.Name };
     }
 
-     private EquipmentInfo MapToEquipmentDTO(Equipment equipment)
+    private EquipmentInfo MapToEquipmentDTO(Equipment equipment)
     {
         return new EquipmentInfo { Id = equipment.Id, Name = equipment.Name };
     }
@@ -392,7 +406,8 @@ public class RecipeService : IRecipeService
     }
     private Image MapImageDataDTOToImage(ImageData dto)
     {
-        var model = new Image() {
+        var model = new Image()
+        {
             Id = dto.Id,
             Order = dto.Order,
             Name = dto.Name,
