@@ -76,13 +76,13 @@ else
 }
 
 @code {
-    private RecipeFriends.Shared.DTO.RecipeInfo[] recipes;
-    private RecipeFriends.Shared.DTO.TagInfo[] tags;
+    private RecipeFriends.Shared.DTO.RecipeInfo[] recipes = [];
+    private RecipeFriends.Shared.DTO.TagInfo[] tags = [];
     private string searchString = string.Empty;
 
     HashSet<TagInfo> _selectedItems = new();
     HashSet<TagInfo> _filterItems = new();
-    FilterDefinition<RecipeInfo> _filterDefinition;
+    FilterDefinition<RecipeInfo> _filterDefinition = new FilterDefinition<RecipeInfo>();
     string _icon = Icons.Material.Outlined.FilterAlt;
     bool _selectAll = true;
     bool _filterOpen = false;
@@ -102,7 +102,6 @@ else
                     return f.Count() > 0;
                 }
             };
-
     }
 
     private Func<RecipeInfo, bool> _quickFilter => x =>

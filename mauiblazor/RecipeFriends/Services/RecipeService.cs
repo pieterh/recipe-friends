@@ -6,26 +6,16 @@ using Image = RecipeFriends.Shared.Data.Models.Image;
 
 namespace RecipeFriends.Services;
 
-public class RecipeService : IRecipeService
+public class RecipeService(RecipeFriendsDbContext context) : IRecipeService
 {
-    private readonly RecipeFriendsDbContext _context;
-
-    public RecipeService(RecipeFriendsDbContext context)
-    {
-        _context = context;
-    }
+    private readonly RecipeFriendsDbContext _context = context;
 
     public async Task<RecipeDetails> GetRecipeDetailsAsync(
         int id,
         CancellationToken cancellationToken
     )
     {
-        var recipe = await _context.Recipes.FindAsync(id);
-        if (recipe == null)
-        {
-            return null;
-        }
-        ;
+        var recipe = await _context.Recipes.FindAsync([id], cancellationToken: cancellationToken) ?? throw new ArgumentOutOfRangeException(nameof(id));
         return MapToRecipeDetailsDTO(recipe);
     }
 
@@ -34,12 +24,7 @@ public class RecipeService : IRecipeService
         CancellationToken cancellationToken
     )
     {
-        var image = await _context.Images.FindAsync(id);
-        if (image == null)
-        {
-            return null;
-        }
-        ;
+        var image = await _context.Images.FindAsync([id], cancellationToken: cancellationToken) ?? throw new ArgumentOutOfRangeException(nameof(id));
         return MapToImageDataDTO(image);
     }
 
@@ -50,19 +35,24 @@ public class RecipeService : IRecipeService
         return r;
     }
 
-    public async Task<bool> SaveRecipeDetailsAsync(RecipeDetails recipeDTO, List<ImageData> newImages, List<ImageData> deletedImages, CancellationToken cancellationToken)
+    public async Task<bool> SaveRecipeDetailsAsync(RecipeDetails recipeDTO, IEnumerable<ImageData> images, CancellationToken cancellationToken)
     {
         try
         {
             Recipe recipe;
             if (recipeDTO.Id > 0)
             {
-                recipe  = await UpdateRecipeAsync(recipeDTO, cancellationToken);                
+                recipe = await UpdateRecipeAsync(recipeDTO, cancellationToken);
                 if (recipe == null)
                     return false;
-                foreach(var delImage in deletedImages){
+
+                // only need to remove the inactive images from existing images
+                foreach (var delImage in images.Where(x => x.Status == ImageStatus.Inactive))
+                {
                     var image = _context.Images.FirstOrDefault((x) => x.Id == delImage.Id);
-                    if (image != null){
+                    if (image != null)
+                    {
+                        recipe.Images.Remove(image);
                         _context.Images.Remove(image);
                     }
                 }
@@ -74,9 +64,9 @@ public class RecipeService : IRecipeService
                     return false;
             }
 
-            foreach (var img in newImages)
+            foreach (var img in images.Where(x => x.Status != ImageStatus.Inactive))
             {
-                SaveImageDataAsync(recipe, img);
+                _ = await SaveImageDataAsync(recipe, img);
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -98,14 +88,14 @@ public class RecipeService : IRecipeService
             .FirstOrDefaultAsync(r => r.Id == recipeDTO.Id, cancellationToken);
 
         if (existingRecipe == null)
-            return existingRecipe;
+            throw new ArgumentOutOfRangeException(nameof(recipeDTO));
 
-        MapRecipeDTOToRecipe(recipeDTO, existingRecipe);
+        RecipeService.MapRecipeDTOToRecipe(recipeDTO, existingRecipe);
 
         UpdateRecipeTags(recipeDTO, existingRecipe);
         UpdateRecipeEquipment(recipeDTO, existingRecipe);
-        UpdateRecipeIngredients(recipeDTO, existingRecipe);
-        UpdateRecipeImages(recipeDTO, existingRecipe);
+        RecipeService.UpdateRecipeIngredients(recipeDTO, existingRecipe);
+        //UpdateRecipeImages(recipeDTO, existingRecipe);
         return existingRecipe;
     }
 
@@ -124,8 +114,7 @@ public class RecipeService : IRecipeService
         await _context.Recipes.AddAsync(newRecipe);
         UpdateRecipeTags(recipeDTO, newRecipe);
         UpdateRecipeEquipment(recipeDTO, newRecipe);
-        UpdateRecipeIngredients(recipeDTO, newRecipe);
-
+        RecipeService.UpdateRecipeIngredients(recipeDTO, newRecipe);
         return newRecipe;
     }
 
@@ -189,7 +178,7 @@ public class RecipeService : IRecipeService
         }
     }
 
-    private void UpdateRecipeIngredients(RecipeDetails recipeDTO, Recipe existingRecipe)
+    private static void UpdateRecipeIngredients(RecipeDetails recipeDTO, Recipe existingRecipe)
     {
         // Handle ingerdients
         // Identify ingredients that are no longer associated
@@ -229,9 +218,10 @@ public class RecipeService : IRecipeService
         }
     }
 
-    private void UpdateRecipeImages(RecipeDetails recipeDTO, Recipe existingRecipe)
+    private static void UpdateRecipeImages(RecipeDetails recipeDTO, Recipe existingRecipe)
     {
-        foreach(var image in recipeDTO.Images){
+        foreach (var image in recipeDTO.Images)
+        {
             var imgToUpdate = existingRecipe.Images.First(x => x.Id == image.Id);
             imgToUpdate.Order = image.Order;
             imgToUpdate.Title = image.Title;
@@ -241,18 +231,30 @@ public class RecipeService : IRecipeService
 
     public async Task<bool> SaveImageDataAsync(int recipeId, ImageData img, CancellationToken cancellationToken)
     {
-        var recipe = await _context.Recipes.FindAsync(new object[] { recipeId }, cancellationToken: cancellationToken);
-        var retval = SaveImageDataAsync(recipe, img);
+        var recipe = await _context.Recipes.FindAsync([recipeId], cancellationToken: cancellationToken) ?? throw new ArgumentOutOfRangeException(nameof(recipeId));
+        var retval = await SaveImageDataAsync(recipe, img);
         if (retval)
             await _context.SaveChangesAsync(cancellationToken);
         return retval;
     }
 
-    internal bool SaveImageDataAsync(Recipe recipe, ImageData img)    {
-        if (recipe == null)
-            return false;
+    internal async Task<bool> SaveImageDataAsync(Recipe recipe, ImageData img)
+    {
+        ArgumentNullException.ThrowIfNull(recipe);
+        ArgumentNullException.ThrowIfNull(img);
 
-        recipe.Images.Add(MapImageDataDTOToImage(img));
+        if (img.Id > 0)
+        {
+            var image = await _context.Images.FindAsync([img.Id]) ?? throw new ArgumentOutOfRangeException(nameof(img));
+            image.Order = img.Order;
+            image.Title = img.Title;
+            image.Name = img.Name;
+            // not updating the actual data of the image self
+            _context.Images.Update(image);
+
+        }
+        else
+            recipe.Images.Add(RecipeService.MapImageDataDTOToImage(img));
 
         return true;
     }
@@ -286,10 +288,6 @@ public class RecipeService : IRecipeService
     }
 
     #region Map Model To DTO
-
-
-
-
     private RecipeDetails MapToRecipeDetailsDTO(Recipe recipe)
     {
         // make sure the related lists and references are loaded
@@ -319,8 +317,6 @@ public class RecipeService : IRecipeService
                 .ToList()
         };
     }
-
-
 
     private RecipeInfo MapToRecipeInfoDTO(Recipe recipe)
     {
@@ -354,9 +350,9 @@ public class RecipeService : IRecipeService
         };
     }
 
-    private static ImageInfo MapToImageInfoDTO(Image image)
+    private static Shared.DTO.ImageInfo MapToImageInfoDTO(Image image)
     {
-        return new ImageInfo()
+        return new Shared.DTO.ImageInfo()
         {
             Id = image.Id,
             Order = image.Order,
@@ -367,13 +363,28 @@ public class RecipeService : IRecipeService
 
     private static ImageData MapToImageDataDTO(Image image)
     {
+        using var slImage = SixLabors.ImageSharp.Image.Load(image.Data);
+        int size = 200;
+        slImage.Mutate(x => x.Resize(new SixLabors.ImageSharp.Processing.ResizeOptions
+        {
+            Size = new SixLabors.ImageSharp.Size(size, size),
+            Mode = SixLabors.ImageSharp.Processing.ResizeMode.Max
+            // Constrains the resized image to fit the bounds of its container maintaining the original aspect ratio.
+        }));
+
+        //save resized image as a png and fix filename extension
+        using var stream = new MemoryStream();
+        slImage.SaveAsPng(stream);
+        var filename = Path.ChangeExtension(image.Name, "png");
+
         var result = new ImageData()
         {
             Id = image.Id,
             Order = image.Order,
-            Name = image.Name,
+            Name = filename,
             Title = image.Title,
-            Data = image.Data
+            Data = stream.ToArray(),
+            Status = ImageStatus.Active
         };
         return result;
     }
@@ -395,12 +406,12 @@ public class RecipeService : IRecipeService
 
     private MeasurementInfo MapToMeasurementDTO(Measurement measurement)
     {
-        return new MeasurementInfo { Id = measurement.MeasurementId, Name = measurement.Name };
+        return new MeasurementInfo(measurement.MeasurementId, measurement.Name);
     }
     #endregion Map Model To DTO
 
     #region Map DTO to Model
-    private void MapRecipeDTOToRecipe(RecipeDetails recipeDTO, Recipe existingRecipe)
+    private static void MapRecipeDTOToRecipe(RecipeDetails recipeDTO, Recipe existingRecipe)
     {
         existingRecipe.Title = recipeDTO.Title;
         existingRecipe.CategoryId = recipeDTO.Category.Id;
@@ -410,7 +421,7 @@ public class RecipeService : IRecipeService
         existingRecipe.PreparationTime = recipeDTO.PreparationTime;
         existingRecipe.CookingTime = recipeDTO.CookingTime;
     }
-    private Image MapImageDataDTOToImage(ImageData dto)
+    private static Image MapImageDataDTOToImage(ImageData dto)
     {
         var model = new Image()
         {

@@ -13,7 +13,7 @@ public class RecipeInfo
     public required string Title { get; set; }
 
     [Required]
-    public CategoryInfo Category { get; set; }   
+    public CategoryInfo Category { get; set; } = CategoryInfo.Unset;
 
     [Required]
     [StringLength(100, MinimumLength = 50)]

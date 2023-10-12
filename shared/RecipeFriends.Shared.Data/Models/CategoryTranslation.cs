@@ -14,16 +14,16 @@ public class CategoryTranslation
     [ForeignKey("Category")]
     public int CategoryId { get; set; }
 
-    public virtual Category Category { get; set; }  // Navigation property
+    public virtual Category Category { get; set; } = Category.Unset;  // Navigation property
 
     [Required]
     [ForeignKey("Language")]
     public int LanguageId { get; set; }
 
-    public virtual Language Language { get; set; }  // Navigation property
+    public virtual Language Language { get; set; }  = Language.Default;  // Navigation property
 
     [Required]
     [MaxLength(100)]  // Adjust based on the longest translated category name you expect
-    public string TranslatedName { get; set; }
+    public required string TranslatedName { get; set; }
 }
 

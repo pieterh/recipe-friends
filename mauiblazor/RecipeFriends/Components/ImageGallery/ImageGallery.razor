@@ -13,38 +13,43 @@
         </MudToolBar>
         <MudGrid Justify="Justify.FlexStart">
             <MudItem xs="12">
-                <MudDropContainer T="ImageData" Items="_list" 
-                    CanDropClass="mud-border-info" NoDropClass="mud-border-error" 
-                    ItemsSelector=@( (item, column) => item.Order.ToString() == column ) 
-                    ItemDropped="ItemUpdated"
-                    Class="border-2 border-solid mud-border-lines-default">
-                    <ChildContent>
-                        <MudGrid Justify="Justify.FlexStart">
-                            @{
-                                int c = 1;
-                                foreach (var image in _list)
-                                {
-                                    // capture value in local variable
-                                    int zoneIdentifier = c;
-                                    <MudItem xs="3">
-                                        <MudDropZone T="ImageData" Identifier="@zoneIdentifier.ToString()" AllowReorder="true"
-                                            DraggingClass="mud-theme-success"
-                                            Class="d-flex justify-center align-center border-none docs-gray-bg mud-border-lines-default" />
-                                    </MudItem> 
-                                    c++;
-                                }
-                            }
-                        </MudGrid>
-                    </ChildContent>
-                    <ItemRenderer>
-                        <div class="image-container">
-                            <MudImage Src="@GetDataURL(context)" Alt="@context.Title" Elevation="25"
-                                Class="rounded-lg" style="max-height:200px;max-width:200px;height:auto;width:auto;" />
-                            <MudCheckBox T="bool" Color="Color.Primary" style="position:absolute;top:0" 
-                                CheckedChanged="((e) => CheckedChanged(context, e))" />
-                        </div>
-                    </ItemRenderer>
-                </MudDropContainer>
+                @{
+                    if (_list.Count() > 0) {
+                        <MudDropContainer T="ImageData" Items="_list" 
+                            CanDropClass="mud-border-info" NoDropClass="mud-border-error" 
+                            ItemsSelector=@( (item, zoneIdentifier) => item.Order.ToString() == zoneIdentifier ) 
+                            ItemDropped="ItemUpdated"
+                            Class="border-2 border-solid mud-border-lines-default">
+                            <ChildContent>
+                                <MudGrid Justify="Justify.FlexStart">
+                                    @{
+                                        var nrZones = _list.Max(x => x.Order);
+                                        for(var c = 1; c <= nrZones; c++)
+                                        {
+                                            // capture value in local variable
+                                            var zoneIdentifier = c.ToString();
+                                            <MudItem xs="3">
+                                                <MudDropZone T="ImageData" Identifier="@zoneIdentifier" AllowReorder="true"
+                                                    DraggingClass="mud-theme-success"
+                                                    Class="d-flex justify-center align-center border-none docs-gray-bg mud-border-lines-default" />
+                                            </MudItem>
+                                        }
+                                    }
+                                </MudGrid>
+                            </ChildContent>
+                            <ItemRenderer>
+                                <div class="image-container" >
+                                    <MudImage Src="@GetDataURL(context)" Alt="@context.Title" Elevation="25" id="@context.HashValue"                               
+                                        Class="rounded-lg" style="max-height:200px;max-width:200px;height:auto;width:auto;" />
+                                    <MudCheckBox T="bool" Color="Color.Primary" style="position:absolute;top:0" 
+                                        CheckedChanged="((e) => CheckedChanged(context, e))" />
+                                </div>
+                            </ItemRenderer>
+                        </MudDropContainer>
+                    }else{
+                       <MudAlert Severity="Severity.Info">No images for this recipe.</MudAlert>
+                    }
+                }
             </MudItem>
             <MudItem xs="12" Class="custom-muditem" style="overflow: hidden;">
                 <FileDropZone OnFileAdded=HandleFileAdded></FileDropZone>
@@ -54,12 +59,13 @@
 </MudElement>
 
 @code {
-    [Parameter] public List<ImageData> ImagesToShow { get; set; } = new List<ImageData>();
+    [Parameter] public IEnumerable<ImageData> ImagesToShow { get; set; } = new List<ImageData>();
     [Parameter] public EventCallback<IBrowserFile> OnFileAdded { get; set; }
     [Parameter] public EventCallback<string[]> OnFilesRemoved { get; set; }
 
     public IOrderedEnumerable<ImageData> _list = new List<ImageData>().OrderBy(x => x.Order);
-    private IDictionary<string, string> _dataUrlCache = new Dictionary<string,string>();
+    private System.Collections.Concurrent.ConcurrentDictionary<string, string> _dataUrlCache = new System.Collections.Concurrent.ConcurrentDictionary<string, string>();
+
     private IDictionary<string, bool> _selectedImages = new Dictionary<string,bool>();
     private bool ImagesSelected { get { return _selectedImages.Count == 0 ; } }
 
@@ -68,7 +74,7 @@
     public override async Task SetParametersAsync(ParameterView parameters)
     {
         Logger.Trace("ImageGallery => SetParametersAsync");
-        Logger.Trace($"ImageGallery => SetParametersAsync: ImagesToShow count: {ImagesToShow.Count}, _list count: {_list.Count()}");
+        Logger.Trace($"ImageGallery => SetParametersAsync: ImagesToShow count: {ImagesToShow.Count()}, _list count: {_list.Count()}");
         await base.SetParametersAsync(parameters);
     }
 
@@ -81,9 +87,14 @@
     {
         Logger.Trace("ImageGallery => OnParametersSet");
         _list = ImagesToShow.OrderBy(x => x.Order);
-        Logger.Trace($"ImageGallery => OnParametersSet: ImagesToShow count: {ImagesToShow.Count}, _list count: {_list.Count()}");
-    }
 
+        Parallel.ForEach(_list, img =>
+        {        
+            GetDataURL(img);            
+        });
+        Logger.Trace($"ImageGallery => OnParametersSet: ImagesToShow count: {ImagesToShow.Count()}, _list count: {_list.Count()}");
+    }
+    
     protected override void OnAfterRender(bool firstRender)
     {
         Logger.Trace($"ImageGallery => OnAfterRender({firstRender})");
@@ -92,6 +103,7 @@
     private void DeleteSelected() {
         var lstHashes = _selectedImages.Where(x => x.Value == true).Select(x => x.Key).ToArray();
         OnFilesRemoved.InvokeAsync(lstHashes);
+        StateHasChanged();
     }
 
     private void CheckedChanged(ImageData image, bool check)
@@ -110,13 +122,17 @@
         try
         {
             Logger.Trace("ImageGallery => ItemUpdated");
-            int from = info.Item.Order;
-            int to = int.Parse(info.DropzoneIdentifier);
+            if (info.Item != null){
+                int from = info.Item.Order;
+                int to = int.Parse(info.DropzoneIdentifier);
 
-            var dropped = info.Item;
-            var cur = _list.First(x => x.Order == to);
-            cur.Order = from;
-            dropped.Order = to;
+                var dropped = info.Item;
+                var cur = _list.First(x => x.Order == to);
+                cur.Order = from;
+                dropped.Order = to;
+            }else{
+                Logger.Error("Unable to determine what item");
+            }
             Logger.Trace("ImageGallery <= ItemUpdated");
         }
         catch (Exception ex)
@@ -131,8 +147,9 @@
         {
             Logger.Info("ImageGallery => HandleFileAdded");
             await OnFileAdded.InvokeAsync(file);
-            // Since we are not changing data and just bubble up the event, there is no state changed and nothing needs to be triggered.
-            // StateHasChanged();
+            // Since we are not changing data and just bubble up the event, 
+            // there is no state changed and nothing needs to be triggered.
+            // so not calling StateHasChanged
             Logger.Info("ImageGallery <= HandleFileAdded");
         }
         catch (Exception ex)
@@ -143,7 +160,9 @@
 
     public string GetDataURL(ImageData image)
     {      
-        
+        if (image.Order == 1){
+            Logger.Info("GetDataURL => 1");
+        }
         if (_dataUrlCache.TryGetValue(image.HashValue, out var dataUrl)){
             Logger.Trace("GetDataURL => cached");
             return dataUrl;            

@@ -2,7 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
+using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
 using RecipeFriends.Shared.Data.Models;
 
 namespace RecipeFriends.Shared.Data;
@@ -30,6 +31,8 @@ public class RecipeFriendsDbContext : DbContext
 
     public RecipeFriendsDbContext()
     {
+        
+
         if (string.IsNullOrWhiteSpace(DbPath))
         {
             var folder = AppDomain.CurrentDomain.BaseDirectory;
@@ -40,8 +43,19 @@ public class RecipeFriendsDbContext : DbContext
             Logger.Debug("Using database file {DbPath}", DbPath);
     }
 
+    public static readonly LoggerFactory MyLoggerFactory
+        = new LoggerFactory(new[] {new NLogLoggerProvider ()});
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlite($"Data Source={DbPath}");
+    {
+        optionsBuilder.UseSqlite($"Data Source={DbPath}");
+#if DEBUG        
+        optionsBuilder.EnableSensitiveDataLogging() ;
+#endif        
+
+        optionsBuilder.UseLoggerFactory(MyLoggerFactory);  //tie-up DbContext with LoggerFactory object
+      
+    }
 
     public void PerformInitialization()
     {

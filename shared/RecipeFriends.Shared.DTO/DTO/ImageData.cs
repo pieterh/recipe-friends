@@ -2,8 +2,12 @@ namespace RecipeFriends.Shared.DTO;
 
 public class ImageData: ImageInfo
 {
-    private byte[] _data;
+    private byte[] _data = [];
     private string _dataHash = string.Empty;
+
+    // Only the data DTO version has the status. It is used to keep 
+    // track of new and removed items before saving updates
+    public ImageStatus Status { get; set; }
 
     public byte[] Data
     {
@@ -33,12 +37,9 @@ public class ImageData: ImageInfo
             HashValue = _dataHash;
     }
 
-     protected string GetHash( byte[] data)
+     protected static string GetHash( byte[] data)
     {
-        using (var hasher = System.Security.Cryptography.MD5.Create())
-        {
-            byte[] hashBytes = hasher.ComputeHash(data);
-            return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
-        }
+        byte[] hashBytes = System.Security.Cryptography.MD5.HashData(data);
+        return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
     }
 }

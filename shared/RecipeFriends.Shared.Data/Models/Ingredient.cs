@@ -11,8 +11,10 @@ public class Ingredient
     public int Id { get; set; }
     public required string Name { get; set; }
     public required double Amount { get; set; }
-    public int MeasurementId { get; set; }  // FK for Measurement
+
     [Required]
-    public Measurement MeasurementNew { get; set; }  // Navigation property
+    public int MeasurementId { get; set; }  // FK for Measurement
+
+    public Measurement MeasurementNew { get; set; } = Measurement.Unset; // Navigation property
     public required int Order { get; set; }
 }

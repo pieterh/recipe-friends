@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace RecipeFriends.Shared.DTO;
 
@@ -13,7 +12,7 @@ public class RecipeDetails
     public required string Title { get; set; }
 
     [Required]
-    public CategoryInfo Category { get; set; }   
+    public CategoryInfo Category { get; set; } = CategoryInfo.Unset;
 
     [Required]
     [StringLength(250, MinimumLength = 25)]
@@ -38,12 +37,12 @@ public class RecipeDetails
 
     public virtual ICollection<IngredientDetails> Ingredients { get; set; } = new List<IngredientDetails>();
 
-    public List<TagInfo> Tags { get; set; } = new List<TagInfo>();
-    public List<EquipmentInfo> Equipment { get; set; } = new List<EquipmentInfo>();
-    public string TagsAsString {get {return string.Join(", ", Tags.Order().Select((t) => t.Name));} }
+    public List<TagInfo> Tags { get; set; } = [];
+    public List<EquipmentInfo> Equipment { get; set; } = [];
+    public string TagsAsString { get { return string.Join(", ", Tags.Order().Select((t) => t.Name)); } }
 
-    public List<ImageInfo> Images { get; set; } = new List<ImageInfo>();
+    public List<ImageInfo> Images { get; set; } = [];
 
-    
+
 }
 

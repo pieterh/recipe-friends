@@ -5,6 +5,7 @@
 @using RecipeFriends.Components.ImageGallery
 @using RecipeFriends.Data
 @using RecipeFriends.Services
+@using System.Collections.Concurrent;
 
 @inject ISnackbar Snackbar
 @inject IRecipeService RecipeService
@@ -98,7 +99,7 @@
                             <MudTabPanel Text="Images">
                                 <MudGrid>
                                     <MudItem xs="12">
-                                        <ImageGallery ImagesToShow="@_imagesToShow" OnFileAdded=HandleFileAdded OnFilesRemoved=HandleFilesRemoved/>                                        
+                                        <ImageGallery ImagesToShow="@Images()" OnFileAdded=HandleFileAdded OnFilesRemoved=HandleFilesRemoved/>                                        
                                     </MudItem>
                                 </MudGrid>
                             </MudTabPanel>
@@ -135,21 +136,22 @@
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
     private RecipeDetails? recipeDetails;
-    private List<TagInfo> allTags;
-    private List<EquipmentInfo> allEquipment;
-    private List<CategoryInfo> allCategories;
-    private List<MeasurementInfo> allMeasurements;
+    private List<TagInfo> allTags = [];
+    private List<EquipmentInfo> allEquipment = [];
+    private List<CategoryInfo> allCategories = [];
+    private List<MeasurementInfo> allMeasurements = [];
 
-    private List<ImageData> _imagesToShow = new List<ImageData>();
-    private List<ImageData> _orgImages = new List<ImageData>();
-    private List<ImageData> _newImages = new List<ImageData>();
-    private List<ImageData> _removedImages = new List<ImageData>();
+    private ConcurrentBag<ImageData> _orgImages = new ConcurrentBag<ImageData>();
 
+    private IEnumerable<ImageData> Images() {
+        return _orgImages.Where(x => x.Status != ImageStatus.Inactive);
+    }
 
     private string saveStatusMessage = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
+        Logger.Info("=> OnInitializedAsync");
         var tagsTask = RecipeService.GetTagsAsync(CancellationToken.None);
         var equipmentTask = RecipeService.GetEquipmentAsync(CancellationToken.None);
         var categoriesTask = RecipeService.GetCategoriesAsync(CancellationToken.None);
@@ -181,14 +183,40 @@
                 };
         }
 
-        foreach (var img in recipeDetails.Images)
-        {
-            var data = await RecipeService.GetImageDataAsync(img.Id, CancellationToken.None);
-            _orgImages.Add(data);
-        }
+        // Start a background task to load the images.
+        _ = Task.Run(async () => {
+            await LoadImagesAsync(recipeDetails.Images);
+            //await InvokeAsync(StateHasChanged);
+        });
 
-        _imagesToShow = new List<ImageData>(_orgImages);
+        Logger.Info("<= OnInitializedAsync");
     }
+
+    private static SemaphoreSlim semaphore = new SemaphoreSlim(5); // 5 tasks at a time
+    private async Task LoadImagesAsync(IEnumerable<ImageInfo> images)
+    {
+        var tasks = images.Select(async img =>
+        {
+            await semaphore.WaitAsync();
+            try
+            {
+                var data = await RecipeService.GetImageDataAsync(img.Id, CancellationToken.None);
+                _orgImages.Add(data);
+                // Inform Blazor that component state has changed and a re-render is needed.
+                await InvokeAsync(StateHasChanged);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        });
+
+        await Task.WhenAll(tasks);
+
+        // Inform Blazor that component state has changed and a re-render is needed.
+        await InvokeAsync(StateHasChanged);
+    }
+
     // custom sort by name length
     private Func<IngredientDetails, object> _sortBy => x =>
     {
@@ -207,8 +235,8 @@
                     image.Name = imageSource.Name;
                 }
             }
-            
-            bool success = await RecipeService.SaveRecipeDetailsAsync(recipeDetails, _newImages, _removedImages ,CancellationToken.None);
+
+            bool success = await RecipeService.SaveRecipeDetailsAsync(recipeDetails, _orgImages.ToList() ,CancellationToken.None);
 
             if (success)
             {
@@ -224,8 +252,6 @@
         }
     }
 
-
-
     private void AddIngredient()
     {
         var highestOrder = 0;
@@ -239,27 +265,23 @@
                 Name = string.Empty,
                 Amount = 0,
                 Order = highestOrder + 1,
-                Measurement = null
+                Measurement = MeasurementInfo.Unset
             };
         recipeDetails.Ingredients.Add(newIngredient);
     }
 
-    private async Task HandleFilesRemoved(string[] hashes)
+    private void HandleFilesRemoved(string[] hashes)
     {
         foreach(var hash in hashes){
-            var f1 = _newImages.FirstOrDefault((x) => x.HashValue == hash);
+            var f1 = _orgImages.FirstOrDefault((x) => x.HashValue == hash);
             if (f1 != null){
-                _newImages.Remove(f1);
+                f1.Status = ImageStatus.Inactive;
+                UpdateList();
             }else
             {
-                var f2 = _orgImages.FirstOrDefault((x) => x.HashValue == hash);
-                if (f2 != null){
-                    _removedImages.Add(f2);
-                    _orgImages.Remove(f2);
-                }
+                Logger.Error("There was a problem finding the image to be removed.");
             }
-        }
-        UpdateList();
+        }      
 
         // we are in an event and changing data. Notify that the state is changed and the UI will be redrawn properly
         StateHasChanged();
@@ -280,10 +302,7 @@
                 return;
             }
 
-            int highestOrder0 = _orgImages.Any() ? _orgImages.Max(img => img.Order) : 0;
-            int highestOrder1 = _newImages.Any() ? _newImages.Max(img => img.Order) : 0;
-            int highestOrder2 = _removedImages.Any() ? _removedImages.Max(img => img.Order) : 0;
-            int highestOrder = Math.Max(highestOrder0, Math.Max(highestOrder1, highestOrder2));
+            int highestOrder = _orgImages.Any() ? _orgImages.Max(img => img.Order) : 0;
 
             using var stream = file.OpenReadStream(maxSizeBytes);
             using MemoryStream ms = new MemoryStream();
@@ -296,7 +315,7 @@
                     Title = file.Name,
                     Data = ms.ToArray()
                 };
-            _newImages.Add(image);
+            _orgImages.Add(image);
 
             UpdateList();
             Logger.Info($"<= HandleFileAdded - {file.Name} - added.");
@@ -313,23 +332,17 @@
         }
     }
 
-    private static void RenumberImages(IList<ImageData> images){
+    private static void RenumberImages(ConcurrentBag<ImageData> images){
         int c = 1;
-        foreach(var image in images.OrderBy(x => x.Order)){
+        // renumber the images that are not removed
+        foreach(var image in images.Where(x => x.Status != ImageStatus.Inactive).OrderBy(x => x.Order)){
             image.Order = c;
             c++;
         }
     }
 
-    private void UpdateList(){
-        List<ImageData> resultList = new List<ImageData>(_orgImages);
-        foreach (ImageData removedImage in _removedImages)
-        {
-            resultList.Remove(removedImage);
-        }
-        resultList.AddRange(_newImages);
-        RenumberImages(resultList);
-        _imagesToShow = resultList;
+    private void UpdateList() {
+        RenumberImages(_orgImages);
     }
 
     private void Cancel()

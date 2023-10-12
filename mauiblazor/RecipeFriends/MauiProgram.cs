@@ -14,14 +14,11 @@ using NLog.Extensions.Logging;
 using RecipeFriends.Services;
 using RecipeFriends.Shared.Data;
 using MudBlazor;
-using System.Globalization;
 
 namespace RecipeFriends;
 
 public static class MauiProgram
 {
-    private static IServiceProvider services;
-
     public static MauiApp CreateMauiApp()
     {
 
@@ -182,6 +179,7 @@ public static class MauiProgram
                 typeof(MauiProgram).Assembly,
                 "NLog.config"
             );
+
             var cfg = new XmlLoggingConfiguration(XmlReader.Create(stream), null);
             if (cfg.InitializeSucceeded ?? false)
             {
@@ -202,16 +200,19 @@ public static class MauiProgram
         LogManager.ReconfigExistingLoggers();
     }
 
-    public static Stream GetEmbeddedResourceStream(Assembly assembly, string resourceFileName)
+    private static Stream GetEmbeddedResourceStream(Assembly assembly, string resourceFileName)
     {
+        ArgumentNullException.ThrowIfNull(assembly);
+
         var resourcePaths = assembly
             .GetManifestResourceNames()
             .Where(x => x.EndsWith(resourceFileName, StringComparison.OrdinalIgnoreCase))
             .ToList();
         if (resourcePaths.Count == 1)
         {
-            return assembly.GetManifestResourceStream(resourcePaths.Single());
+            var s = assembly.GetManifestResourceStream(resourcePaths.Single()) ?? throw new Exception($"There is a problem creating a stream for the given resource: {resourceFileName}");
+            return s;
         }
-        return null;
+        throw new Exception($"There is a problem retrieving the given resource: {resourceFileName}");
     }
 }

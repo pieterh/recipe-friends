@@ -1,21 +1,20 @@
 ﻿@typeparam TInfo where TInfo : INameable
 
 <MudElement>
-    <MudChipSet AllClosable="true" OnClose="ChipClosed" style="display:inline-flex" >
-    @foreach (var item in Items)
-    {
-        <MudChip Text="@item.Name" Tag="@item"></MudChip>
-    }
+    <MudChipSet AllClosable="true" OnClose="ChipClosed" style="display:inline-flex">
+        @foreach (var item in Items)
+        {
+            <MudChip Text="@item.Name" Tag="@item"></MudChip>
+        }
     </MudChipSet>
     <div style="display:inline-flex">
-        <MudAutocomplete T="TInfo" Value="value1" SearchFunc="@SearchItems" ValueChanged="@AddItem" ToStringFunc="@(e => e == null ? null : e.Name)"/>
+        <MudAutocomplete T="TInfo" SearchFunc="@SearchItems" ValueChanged="@AddItem"
+            ToStringFunc="@(e => e == null ? null : e.Name)" />
     </div>
 </MudElement>
 
 @code {
     private string inputText = string.Empty;
-    private TInfo value1;
-    private bool resetValueOnEmptyText = true;
 
     private List<TInfo> filteredItems = new List<TInfo>();
 
@@ -28,16 +27,16 @@
     [Parameter]
     public EventCallback<List<TInfo>> OnItemsUpdated { get; set; }
 
-    public void ChipClosed(MudChip chip) => RemoveItem((TInfo)chip.Tag);
+    public void ChipClosed(MudChip chip) => RemoveItem((TInfo)chip!.Tag);
 
     private async Task<IEnumerable<TInfo>> SearchItems(string value)
     {
-        filteredItems = AllItems                        
-                        .Where(t => t.Name.Contains(inputText, StringComparison.OrdinalIgnoreCase))
-                        .Where(t => !Items.Any(rt => rt.Id == t.Id))                                                
-                        .OrderBy((x) => x.Name)
-                        .Take(10)                        
-                        .ToList();
+        filteredItems = AllItems
+        .Where(t => t.Name.Contains(inputText, StringComparison.OrdinalIgnoreCase))
+        .Where(t => !Items.Any(rt => rt.Id == t.Id))
+        .OrderBy((x) => x.Name)
+        .Take(10)
+        .ToList();
         return await Task.FromResult<IEnumerable<TInfo>>(filteredItems);
     }
 
@@ -48,9 +47,12 @@
         OnItemsUpdated.InvokeAsync(Items);
     }
 
-    private void RemoveItem(TInfo item)
+    private void RemoveItem(TInfo? item)
     {
-        Items.RemoveAll(t => t.Id == item.Id);
-        OnItemsUpdated.InvokeAsync(Items);
+        if (item != null)
+        {
+            Items.RemoveAll(t => t.Id == item.Id);
+            OnItemsUpdated.InvokeAsync(Items);
+        }
     }
 }

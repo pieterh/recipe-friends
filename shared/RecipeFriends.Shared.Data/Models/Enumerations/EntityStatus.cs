@@ -2,7 +2,7 @@ namespace RecipeFriends.Shared.Data.Models;
 
 public enum EntityStatus
 {
-    Active,
-    Inactive
+    Active = 0,
+    Inactive = 1
 }
 

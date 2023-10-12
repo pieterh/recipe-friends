@@ -1,14 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.ComponentModel.DataAnnotations;
+
+namespace RecipeFriends.Shared.DTO;
 
 public class ImageInfo
 {
     private int id;
     private int order;
-    private string title;
-    private string name;
-    private string? hashValue;
+
+    private string title = string.Empty;
+
+    private string name = string.Empty;
+    private string hashValue = string.Empty;
 
     public int Id
     {
@@ -31,11 +33,12 @@ public class ImageInfo
             if (order != value)
             {
                 order = value;
-                //InvalidateHash();
             }
         }
     }
 
+    [Required]
+    [StringLength(100, MinimumLength = 10)]
     public string Title
     {
         get => title;
@@ -43,12 +46,14 @@ public class ImageInfo
         {
             if (title != value)
             {
+                
                 title = value;
-                //InvalidateHash();
             }
         }
     }
 
+    [Required]
+    [StringLength(100, MinimumLength = 10)]
     public string Name
     {
         get => name;
@@ -80,7 +85,7 @@ public class ImageInfo
 
     protected void InvalidateHash()
     {
-        HashValue = null;
+        HashValue = string.Empty;
     }
 
     virtual protected void CalculateHash()
@@ -90,12 +95,9 @@ public class ImageInfo
         HashValue = GetHash(combinedValues);
     }
 
-    protected string GetHash(string input)
+    protected static string GetHash(string input)
     {
-        using (var hasher = System.Security.Cryptography.MD5.Create())
-        {
-            byte[] data = hasher.ComputeHash(System.Text.Encoding.UTF8.GetBytes(input));
-            return BitConverter.ToString(data).Replace("-", "").ToLowerInvariant();
-        }
+        byte[] data = System.Security.Cryptography.MD5.HashData(System.Text.Encoding.UTF8.GetBytes(input));
+        return BitConverter.ToString(data).Replace("-", "").ToLowerInvariant();
     }
 }

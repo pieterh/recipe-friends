@@ -19,7 +19,7 @@
 </MudElement>    
 
 @code {
-    [Parameter] public string Style { get; set; }
+    [Parameter] public string Style { get; set; } = string.Empty;
     [Parameter] public EventCallback<IBrowserFile> OnFileAdded { get; set; }
 
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();

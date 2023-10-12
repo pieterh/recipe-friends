@@ -10,8 +10,8 @@ public class Recipe
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     public required string Title { get; set; }
-    public int CategoryId { get; set; }
-    public virtual Category Category { get; set; }
+    public required int CategoryId { get; set; }
+    public virtual Category Category { get; set; } = Category.Unset;
 
     public required string ShortDescription { get; set; }
     public required string Description { get; set; }

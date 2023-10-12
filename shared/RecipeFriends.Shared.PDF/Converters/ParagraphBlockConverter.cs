@@ -7,18 +7,17 @@ namespace RecipeFriends.Shared.PDF.Converters;
 
 enum ElementType { Bold, Italic };
 
-public class ParagraphBlockConverter
+public class ParagraphBlockConverter(ParagraphBlock pb)
 {
-    private ParagraphBlock paragraphBlock;
-    public ParagraphBlockConverter(ParagraphBlock pb)
-    {
-        paragraphBlock = pb;
-    }
+    private ParagraphBlock paragraphBlock = pb;
 
     internal void WriteTo(TextDescriptor text)
     {
         // text.DefaultTextStyle(x => x.FontSize(ConvertRecipeToPDF.FontSizeBody));   
         // text.DefaultTextStyle(x => x.FontFamily(ConvertRecipeToPDF.FontFamilyBody));     
+        if (paragraphBlock.Inline == null) 
+            throw new Exception("The paragraph block doesn't have an inline syntax tree.");
+
         foreach (var item in paragraphBlock.Inline)
         {
             // if (item is LeafInline l){
