@@ -7,11 +7,30 @@ using Document = QuestPDF.Fluent.Document;
 
 using RecipeFriends.Shared.DTO;
 using RecipeFriends.Shared.PDF.Components;
+using QuestPDF.Drawing.Exceptions;
 
 namespace RecipeFriends.Shared.PDF;
 
+public readonly struct ImageSize(int width, int height)
+{
+    public readonly int Width = width;
+
+    public readonly int Height = height;
+}
+
 public class ConvertRecipeToPDF
 {
+
+    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+    /// <summary>
+    /// Load the image based on the given resolution
+    /// </summary>
+    /// <param name="imageId">The id of the image to be loaded.</param>
+    /// <param name="size">Desired resolution of the image in pixels.</param>
+    /// <returns>An image in PNG, JPEG, or WEBP image format returned as byte array.</returns>
+    public delegate byte[] LoadImageDelegate(int imageId, ImageSize size);
+
     internal const float FontSizeH1 = 20;
     internal const float FontSizeH2 = 16;
     internal const float FontSizeBody = 10;
@@ -35,21 +54,29 @@ public class ConvertRecipeToPDF
         FontManager.RegisterFontWithCustomName(fontName, s);
     }
 
-    public IEnumerable<byte[]> ToImage(RecipeDetails recipeDetails, bool pageNumbers = false)
+    public IEnumerable<byte[]> ToImage(RecipeDetails recipeDetails, LoadImageDelegate? loadImageDelegate = null, bool pageNumbers = false)
     {
-        var document = ToDocument(recipeDetails, pageNumbers);        
+        var document = ToDocumentInternal(recipeDetails, loadImageDelegate, pageNumbers);        
         var data = document.GenerateImages(new ImageGenerationSettings(){ ImageFormat = ImageFormat.Png, ImageCompressionQuality = ImageCompressionQuality.Best, RasterDpi = 300});
         return data;
     }
 
-    public byte[] DoTest(RecipeDetails recipeDetails, bool pageNumbers = false)
+    public byte[] ToDocument(RecipeDetails recipeDetails, LoadImageDelegate? loadImageDelegate = null, bool pageNumbers = false)
     {
-        var document = ToDocument(recipeDetails, pageNumbers);        
-        var data = document.GeneratePdf();
-        return data;
+        try{
+            var document = ToDocumentInternal(recipeDetails, loadImageDelegate, pageNumbers);        
+            var data = document.GeneratePdf();
+            return data;
+        }catch(DocumentDrawingException dde){
+            Logger.Error(dde, "There was an unhandled document drawing exception while generating the pdf.");
+        }
+        catch(Exception e){
+            Logger.Error(e, "There was an unhandled error generating pdf.");
+        }
+        return [];
     }
         
-    private Document ToDocument(RecipeDetails recipeDetails, bool pageNumbers)
+    private Document ToDocumentInternal(RecipeDetails recipeDetails, LoadImageDelegate? loadImageDelegate, bool pageNumbers)
     {
         var ingredients = recipeDetails.Ingredients;
         var equipment = recipeDetails.Equipment.Select(x => x.Name);
@@ -64,7 +91,19 @@ public class ConvertRecipeToPDF
                 page.Content()                    
                     .Column(col => {
                         col.Spacing(FontSizeBody, Unit.Point);
+
                         col.Item().Text(txt1 => { MarkdownToPDF.WriteToPdf(txt1, recipeDetails.ShortDescription); });
+                        if (recipeDetails.Images.Count != 0 && loadImageDelegate != null)
+                        {           
+                            var image = recipeDetails.Images.OrderBy((x) => x.Order).First(); 
+                            col.Item()
+                                .Height(300)
+                                .Image((QuestPDF.Infrastructure.ImageSize s) => {
+                                    var size = new ImageSize(s.Width, s.Height);
+                                    var imageData = loadImageDelegate.Invoke(image.Id, size);
+                                    return imageData;
+                                }).UseOriginalImage();                            
+                        }
                         col.Item().Text(txt2 => { MarkdownToPDF.WriteToPdf(txt2, recipeDetails.Description); });
 
                         col.Item().Column(col =>
@@ -102,6 +141,8 @@ public class ConvertRecipeToPDF
             Keywords = recipeDetails.TagsAsString
         };
         document.WithMetadata(metadata);
+        var d = document.GetSettings();
+        d.ImageRasterDpi = 300;
         return document;
     }
 

@@ -2,6 +2,7 @@
 using RecipeFriends.Shared.Data;
 using RecipeFriends.Shared.Data.Models;
 using RecipeFriends.Shared.DTO;
+using SixLabors.ImageSharp.Advanced;
 using Image = RecipeFriends.Shared.Data.Models.Image;
 
 namespace RecipeFriends.Services;
@@ -25,7 +26,19 @@ public class RecipeService(RecipeFriendsDbContext context) : IRecipeService
     )
     {
         var image = await _context.Images.FindAsync([id], cancellationToken: cancellationToken) ?? throw new ArgumentOutOfRangeException(nameof(id));
-        return MapToImageDataDTO(image);
+        return MapToImageDataDTO(image, 200, 200);
+    }
+
+
+    public async Task<ImageData> GetImageDataAsync(
+        int id,
+        int width,
+        int height,
+        CancellationToken cancellationToken
+    )
+    {
+        var image = await _context.Images.FindAsync([id], cancellationToken: cancellationToken) ?? throw new ArgumentOutOfRangeException(nameof(id));
+        return MapToImageDataDTO(image, width, height);
     }
 
     public async Task<RecipeInfo[]> GetRecipesAsync(CancellationToken cancellationToken)
@@ -361,33 +374,152 @@ public class RecipeService(RecipeFriendsDbContext context) : IRecipeService
         };
     }
 
-    private static ImageData MapToImageDataDTO(Image image)
+            // int targetWidth = maxWidth;
+        // int targetHeight = maxHeight;
+
+        // // If the image is smaller than the target dimensions, keep its original size.
+        // if (slImage.Width < targetWidth && slImage.Height < targetHeight)
+        // {
+        //     targetWidth = slImage.Width;
+        //     targetHeight = slImage.Height;
+        // }
+
+        // slImage.Mutate(x => x.Resize(new SixLabors.ImageSharp.Processing.ResizeOptions
+        // {
+        //     Size = new SixLabors.ImageSharp.Size(200, 200),
+        //     Mode = SixLabors.ImageSharp.Processing.ResizeMode.Max
+        //     // Constrains the resized image to fit the bounds of its container maintaining the original aspect ratio.
+        // }));
+
+    private static ImageData MapToImageDataDTO(Image image, int maxWidth, int maxHeight)
     {
-        using var slImage = SixLabors.ImageSharp.Image.Load(image.Data);
-        int size = 200;
-        slImage.Mutate(x => x.Resize(new SixLabors.ImageSharp.Processing.ResizeOptions
-        {
-            Size = new SixLabors.ImageSharp.Size(size, size),
-            Mode = SixLabors.ImageSharp.Processing.ResizeMode.Max
-            // Constrains the resized image to fit the bounds of its container maintaining the original aspect ratio.
-        }));
+        var (data, filename) = HandleImageData(image.Data, image.Name, maxWidth, maxHeight);
 
-        //save resized image as a png and fix filename extension
-        using var stream = new MemoryStream();
-        slImage.SaveAsPng(stream);
-        var filename = Path.ChangeExtension(image.Name, "png");
-
-        var result = new ImageData()
+        return new ImageData()
         {
             Id = image.Id,
             Order = image.Order,
             Name = filename,
             Title = image.Title,
-            Data = stream.ToArray(),
+            Data = data,
             Status = ImageStatus.Active
         };
-        return result;
     }
+
+    private static (byte[], string) HandleImageData(byte[] imageData, string imageName, int maxWidth, int maxHeight)
+    {
+        using var slImage = SixLabors.ImageSharp.Image.Load(imageData);
+
+        // Resize and crop the image
+        ResizeAndCropImage3(slImage, maxWidth, maxHeight);
+        var decodedImageFormatName = slImage.Metadata.DecodedImageFormat.Name.ToLower();
+
+        // Save the resized and cropped image as PNG
+        return ConvertToPngAndGetData(slImage, imageName);
+    }
+
+    private static void ResizeAndCropImage1(SixLabors.ImageSharp.Image slImage, int maxWidth, int maxHeight)
+    {
+        var originalWidth = slImage.Width;
+        var originalHeight = slImage.Height;
+
+        var targetAspectRatio = (float)maxWidth / maxHeight;
+        var imageAspectRatio = (float)originalWidth / originalHeight;
+
+        int newWidth, newHeight;
+
+        if (imageAspectRatio > targetAspectRatio)
+        {
+            // The image is wider than the target dimensions. Resize based on height.
+            newHeight = maxHeight;
+            newWidth = (int)(newHeight * imageAspectRatio);
+        }
+        else
+        {
+            // The image is taller or equal to the target dimensions. Resize based on width.
+            newWidth = maxWidth;
+            newHeight = (int)(newWidth / imageAspectRatio);
+        }
+
+        slImage.Mutate(x => x.Resize(newWidth, newHeight));
+
+        // Crop the image to the desired dimensions from the center.
+        var offsetX = (newWidth - maxWidth) / 2;
+        var offsetY = (newHeight - maxHeight) / 2;
+        var rect = new SixLabors.ImageSharp.Rectangle(offsetX, offsetY, maxWidth, maxHeight);
+
+        slImage.Mutate(x => x.Crop(rect));
+    }
+
+    private static void ResizeAndCropImage2(SixLabors.ImageSharp.Image slImage, int maxWidth, int maxHeight)
+    {
+        var originalWidth = slImage.Width;
+        var originalHeight = slImage.Height;
+
+        var targetAspectRatio = (float)maxWidth / maxHeight;
+        var imageAspectRatio = (float)originalWidth / originalHeight;
+
+        int cropWidth, cropHeight;
+
+        if (imageAspectRatio > targetAspectRatio)
+        {
+            // The image is wider than the target dimensions. Crop based on width.
+            cropWidth = (int)(originalHeight * targetAspectRatio);
+            cropHeight = originalHeight;
+        }
+        else
+        {
+            // The image is taller or equal to the target dimensions. Crop based on height.
+            cropWidth = originalWidth;
+            cropHeight = (int)(originalWidth / targetAspectRatio);
+        }
+
+        // Crop the image to the desired aspect ratio from the center.
+        var offsetX = (originalWidth - cropWidth) / 2;
+        var offsetY = (originalHeight - cropHeight) / 2;
+        var rect = new SixLabors.ImageSharp.Rectangle(offsetX, offsetY, cropWidth, cropHeight);
+
+        slImage.Mutate(x => x.Crop(rect));
+
+        // Resize the cropped image to the target dimensions.
+        slImage.Mutate(x => x.Resize(maxWidth, maxHeight));
+    }
+
+    private static void ResizeAndCropImage3(SixLabors.ImageSharp.Image slImage, int maxWidth, int maxHeight)
+    {
+        var originalWidth = slImage.Width;
+        var originalHeight = slImage.Height;
+
+        // Calculate the new height after resizing to fit maxWidth
+        var newHeight = (int)((float)originalHeight / originalWidth * maxWidth);
+
+        // Resize the image to fit the maxWidth
+        slImage.Mutate(x => x.Resize(maxWidth, newHeight));
+
+        if (newHeight > maxHeight){
+            // Crop the resized image from the center to achieve the desired height
+            var offsetY = (newHeight - maxHeight) / 2;
+            var rect = new SixLabors.ImageSharp.Rectangle(0, offsetY, maxWidth, maxHeight);
+
+            slImage.Mutate(x => x.Crop(rect));
+        }
+    }
+
+
+    private static (byte[], string) ConvertToPngAndGetData(byte[] imageData, string imageName)
+    {
+        using var slImage = SixLabors.ImageSharp.Image.Load(imageData);
+        return ConvertToPngAndGetData(slImage, imageName);
+    }
+
+    private static (byte[], string) ConvertToPngAndGetData(SixLabors.ImageSharp.Image slImage, string imageName)
+    {
+        using var stream = new MemoryStream();
+        slImage.SaveAsPng(stream);
+        var newName = Path.ChangeExtension(imageName, "png");
+        return (stream.ToArray(), newName);
+    }
+
 
     private TagInfo MapToTagDTO(Tag tag)
     {

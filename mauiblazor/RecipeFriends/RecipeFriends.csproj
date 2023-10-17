@@ -79,8 +79,8 @@
         <PackageReference Include="CommunityToolkit.Maui" Version="6.0.0" />
         <PackageReference Include="MudBlazor" Version="6.11.0" />
         <PackageReference Include="PSC.Blazor.Components.MarkdownEditor" Version="2.0.17" />
-        <PackageReference Include="NLog" Version="5.2.4" />
-        <PackageReference Include="NLog.Extensions.Logging" Version="5.3.4" />
+        <PackageReference Include="NLog" Version="5.2.5" />
+        <PackageReference Include="NLog.Extensions.Logging" Version="5.3.5" />
         <PackageReference Include="NLog.Targets.MauiLog" Version="5.2.0" />
     </ItemGroup>
 

@@ -2,11 +2,13 @@
 using System.Text;
 
 using RecipeFriends.Services;
+using RecipeFriends.Shared.PDF;
 
 namespace RecipeFriends;
 
 public class DocumentService : IDocumentService
 {
+    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
     private IRecipeService _recipeService;
     public DocumentService(IRecipeService recipeService)
     {
@@ -35,14 +37,22 @@ public class DocumentService : IDocumentService
     {
         var recipeDetails = await _recipeService.GetRecipeDetailsAsync(id, cancellationToken).ConfigureAwait(true);
         var c = new Shared.PDF.ConvertRecipeToPDF();
-        return await Task.FromResult(c.ToImage(recipeDetails)).ConfigureAwait(true);
+        return await Task.FromResult(c.ToImage(recipeDetails, (int imageId, ImageSize s) => { 
+                var imageData = _recipeService.GetImageDataAsync(imageId, s.Width, s.Height, cancellationToken).GetAwaiter().GetResult(); 
+
+                return imageData.Data;
+            } )).ConfigureAwait(true);
     }
 
     public async Task<byte[]> RecipeToPDFAsync(int id, CancellationToken cancellationToken)
     {
         var recipeDetails = await _recipeService.GetRecipeDetailsAsync(id, cancellationToken).ConfigureAwait(true);
         var c = new Shared.PDF.ConvertRecipeToPDF();
-        return await Task.FromResult(c.DoTest(recipeDetails)).ConfigureAwait(true);
+        return await Task.FromResult(c.ToDocument(recipeDetails, (int imageId, ImageSize s) => { 
+                var imageData = _recipeService.GetImageDataAsync(imageId, s.Width, s.Height, cancellationToken).GetAwaiter().GetResult(); 
+
+                return imageData.Data;
+            } )).ConfigureAwait(true);
     }
 
     // public async Task<string> RecipeToHtmlAsync(int id, CancellationToken cancellationToken)
