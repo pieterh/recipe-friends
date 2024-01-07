@@ -1,36 +1,27 @@
-using Markdig;
 using Markdig.Syntax;
-using SkiaSharp;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
+using SkiaSharp;
 
-using RecipeFriends.Shared.DTO;
-using RecipeFriends.Shared.PDF.Converters;
+namespace RecipeFriends.Shared.PDF.Converters;
 
-namespace RecipeFriends.Shared.PDF;
-public class RecipeDirections
+public class ListBlockConverter
 {
+    private ListBlock listBlock;
 
-    public static void WriteDirections(RecipeDetails recipeDetails, ColumnDescriptor x)
+    public ListBlockConverter(ListBlock lb)
+    {
+        listBlock = lb;
+    }
+
+    internal void WriteTo(TextDescriptor text)
     {
         bool debugOn = false;
-        x.Spacing(0, Unit.Point);
-        x.Item()
-            .PaddingBottom(-10, Unit.Point)             // unclear why I need to fix it like this
-            .Text(txt =>
-            {
-                txt.Line("Directions")
-                   .FontSize(ConvertRecipeToPDF.FontSizeH2)
-                   .Bold();
-            });
-
-        var i = 1;
-        foreach (var l in recipeDetails.Directions.Split('\n'))
-        {
-            // strip empty rows from the list of directions
-            if (!string.IsNullOrEmpty(l))
-            {
-                x.Item()
+        int i = 0;
+        foreach (var item in listBlock)
+        {            
+            text.Element().Column(c => { 
+                c.Item()
                     .ShowEntire()
                     .PaddingBottom(10, Unit.Point)
                     .Element(x => debugOn ? x.DebugArea() : x)
@@ -48,7 +39,7 @@ public class RecipeDirections
                             {
                                 using var circlePaint = new SKPaint
                                 {
-                                    Color = SKColor.Parse("#FF642F"),
+                                    Color = SKColors.Black, // SKColor.Parse("#FF642F"),
                                     Style = SKPaintStyle.Fill
                                 };
 
@@ -71,20 +62,32 @@ public class RecipeDirections
                                 float textHeight = f.Descent - f.Ascent;
                                 float textOffset = (textHeight / 2) - f.Descent - 1;
                                 // draw a circle
-                                canvas.DrawCircle(0, 0, 10, circlePaint);
-                                canvas.DrawText(nr.ToString(), 0, textOffset, textPaint);
+                                canvas.DrawCircle(0, 0, 3, circlePaint);
+                                //canvas.DrawText(nr.ToString(), 0, textOffset, textPaint);
                             });
 
                         row.RelativeItem().Element(x => debugOn ? x.DebugArea() : x)
                             .PaddingTop(2, Unit.Point)
                             .Text(txt3 =>
                             {
-                                txt3.DefaultTextStyle(x => x.FontSize(ConvertRecipeToPDF.FontSizeBody).FontFamily(ConvertRecipeToPDF.FontFamilyBody));
-                                MarkdownToPDF.WriteToPdf(txt3, l.Replace("* ", string.Empty));
+                                //txt3.DefaultTextStyle(x => x.FontSize(ConvertRecipeToPDF.FontSizeBody).FontFamily(ConvertRecipeToPDF.FontFamilyBody));
+                                //MarkdownToPDF.WriteToPdf(txt3, l.Replace("* ", string.Empty));
+                                switch (item)
+                                {
+                                    case ContainerBlock container:
+                                        var containerConverter = new ContainerBlockConverter(container);
+                                        containerConverter.WriteTo(txt3);
+                                        break;
+
+                                    case ParagraphBlock paragraph:
+                                        var paragraphConverter = new ParagraphBlockConverter(paragraph);
+                                        paragraphConverter.WriteTo(txt3);
+                                        break;
+
+                                }
                             });
                     });
-                i++;
-            }
+            });
         }
     }
 }

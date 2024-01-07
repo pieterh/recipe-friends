@@ -43,6 +43,8 @@
                                             }
                                         </MudSelect>
                                         <TagBox TInfo="TagInfo" AllItems="@allTags" Items="recipeDetails.Tags"></TagBox>
+                                        <MudTextField id="prepTime" xs="8" @bind-Value="recipeDetails.PreparationTime" Converter="@converter"/>
+                                        <MudTextField id="cookTime" xs="8" @bind-Value="recipeDetails.CookingTime" Converter="@converter"/>
                                     </div>
                                 </MudPaper>
                             </MudTabPanel>
@@ -146,6 +148,12 @@
     private IEnumerable<ImageData> Images() {
         return _orgImages.Where(x => x.Status != ImageStatus.Inactive);
     }
+
+    Converter<TimeOnly> converter = new Converter<TimeOnly>
+    {
+        SetFunc = value => ((value.Hour * 60) + value.Minute).ToString(),
+        GetFunc = text => new TimeOnly(long.Parse(text ?? "0") * TimeSpan.TicksPerMinute),
+    };
 
     private string saveStatusMessage = string.Empty;
 

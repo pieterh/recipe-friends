@@ -331,6 +331,7 @@ public class RecipeService(RecipeFriendsDbContext context) : IRecipeService
             Ingredients = recipe.Ingredients.Select(MapToIngredientDTO).ToList(),
             Tags = recipe.Tags.Select(rt => new TagInfo() { Id = rt.Id, Name = rt.Name }).ToList(),
             Equipment = recipe.Equipment.Select(rt => new EquipmentInfo() { Id = rt.Id, Name = rt.Name }).ToList(),
+            Notes = recipe.Notes,
             Images = recipe.Images
                 .Select(
                     rt => MapToImageInfoDTO(rt)
@@ -560,6 +561,7 @@ public class RecipeService(RecipeFriendsDbContext context) : IRecipeService
         existingRecipe.Directions = recipeDTO.Directions;
         existingRecipe.PreparationTime = recipeDTO.PreparationTime;
         existingRecipe.CookingTime = recipeDTO.CookingTime;
+        existingRecipe.Notes = recipeDTO.Notes;
     }
     private static Image MapImageDataDTOToImage(ImageData dto)
     {

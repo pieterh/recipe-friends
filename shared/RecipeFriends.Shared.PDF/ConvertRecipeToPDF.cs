@@ -108,7 +108,7 @@ public class ConvertRecipeToPDF
 
                         col.Item().Column(col =>
                         {
-                            AddRecipeQuickStats(col.Item());
+                            AddRecipeQuickStats(col.Item(), recipeDetails);
                         });
 
                         col.Item().Element(x => debugOn ? x.DebugArea() : x)
@@ -132,6 +132,24 @@ public class ConvertRecipeToPDF
                                         });
                                                 
                             });
+
+                        if (!string.IsNullOrWhiteSpace(recipeDetails.Notes)){
+                            //col.Spacing(0, Unit.Point);
+                            col.Item()
+                                .PaddingBottom(-10, Unit.Point)             // unclear why I need to fix it like this
+                                .Text(txt =>
+                                {
+                                    txt.Line("Notes")
+                                    .FontSize(ConvertRecipeToPDF.FontSizeH2)
+                                    .Bold();
+                                });
+
+                            col.Item().Column(col =>
+                            {
+                                col.Item().Text(txt2 => { MarkdownToPDF.WriteToPdf(txt2, recipeDetails.Notes); });
+                            });
+                        }
+
                     });
             });
         });
@@ -146,19 +164,21 @@ public class ConvertRecipeToPDF
         return document;
     }
 
-    private static void AddRecipeQuickStats(IContainer container)
+    private static void AddRecipeQuickStats(IContainer container, RecipeDetails recipeDetails)
     {        
         container.Row(row =>
         {
             row.AutoItem().BorderRight(1, Unit.Point).BorderColor("#E8E8E8").PaddingRight(10, Unit.Point).Column(col =>
             {
-                col.Item().Text("Prep Time").FontColor("#7F7F7F").FontSize(FontSizeBody);
-                col.Item().Text("15 min").FontColor(Colors.Black).FontSize(FontSizeH2);
+                var prepTime = (recipeDetails.PreparationTime.Hour * 60) + recipeDetails.PreparationTime.Minute;
+                col.Item().Text("Prep Time").FontColor("#7F7F7F").FontSize(FontSizeBody);                
+                col.Item().Text( prepTime + " min").FontColor(Colors.Black).FontSize(FontSizeH2);
             });
             row.AutoItem().BorderRight(1, Unit.Point).BorderColor("#E8E8E8").PaddingLeft(10, Unit.Point).PaddingRight(10, Unit.Point).Column(col =>
             {
+                var cookTime = (recipeDetails.CookingTime.Hour * 60) + recipeDetails.CookingTime.Minute;
                 col.Item().Text("Cooking Time").FontColor("#7F7F7F").FontSize(FontSizeBody);
-                col.Item().Text("25 min").FontColor(Colors.Black).FontSize(FontSizeH2);
+                col.Item().Text(cookTime + " min").FontColor(Colors.Black).FontSize(FontSizeH2);
             });
             row.AutoItem().BorderRight(1, Unit.Point).BorderColor("#E8E8E8").PaddingLeft(10, Unit.Point).PaddingRight(10, Unit.Point).Column(col =>
             {

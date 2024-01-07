@@ -20,6 +20,11 @@ public class ContainerBlockConverter
         {
             switch (item)
             {
+                case ListBlock list:
+                    var listConverter = new ListBlockConverter(list);
+                    listConverter.WriteTo(text);
+                    break;
+
                 case ContainerBlock container:
                     var containerConverter = new ContainerBlockConverter(container);
                     containerConverter.WriteTo(text);
