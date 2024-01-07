@@ -110,6 +110,9 @@ public class RecipeFriendsDbContext : DbContext
         modelBuilder.Entity<Category>()
             .Property(e => e.Status)
             .HasConversion<int>();
+        modelBuilder.Entity<Ingredient>()
+            .Property(p => p.Id)
+            .ValueGeneratedOnAdd();
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {

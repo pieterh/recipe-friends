@@ -78,8 +78,8 @@ public class ConvertRecipeToPDF
         
     private Document ToDocumentInternal(RecipeDetails recipeDetails, LoadImageDelegate? loadImageDelegate, bool pageNumbers)
     {
-        var ingredients = recipeDetails.Ingredients;
-        var equipment = recipeDetails.Equipment.Select(x => x.Name);
+        var ingredients = recipeDetails.Ingredients.OrderBy((x) => x.Order);
+        var equipment = recipeDetails.Equipment.Select(x => x.Name).Order();
 
         bool debugOn = false;
         var document = QuestPDF.Fluent.Document.Create(container =>

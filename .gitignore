@@ -10,4 +10,4 @@ coverage.opencover.xml
 **/*.csproj.user
 **/mono_crash.*json
 git.commit.hash.txt
-
+**/.meteor

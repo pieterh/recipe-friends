@@ -1,14 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NLog;
 using RecipeFriends.Shared.Data;
 using RecipeFriends.Shared.Data.Models;
 using RecipeFriends.Shared.DTO;
-using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 using Image = RecipeFriends.Shared.Data.Models.Image;
 
 namespace RecipeFriends.Services;
 
 public class RecipeService(RecipeFriendsDbContext context) : IRecipeService
 {
+    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
     private readonly RecipeFriendsDbContext _context = context;
 
     public async Task<RecipeDetails> GetRecipeDetailsAsync(
@@ -85,8 +88,9 @@ public class RecipeService(RecipeFriendsDbContext context) : IRecipeService
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            Logger.Error(e, "Problem saving recipe.");
             return false;
         }
     }
@@ -103,21 +107,22 @@ public class RecipeService(RecipeFriendsDbContext context) : IRecipeService
         if (existingRecipe == null)
             throw new ArgumentOutOfRangeException(nameof(recipeDTO));
 
-        RecipeService.MapRecipeDTOToRecipe(recipeDTO, existingRecipe);
+        MapRecipeDTOToRecipe(recipeDTO, existingRecipe);
 
         UpdateRecipeTags(recipeDTO, existingRecipe);
         UpdateRecipeEquipment(recipeDTO, existingRecipe);
-        RecipeService.UpdateRecipeIngredients(recipeDTO, existingRecipe);
+        UpdateRecipeIngredients(recipeDTO, existingRecipe);
         //UpdateRecipeImages(recipeDTO, existingRecipe);
         return existingRecipe;
     }
 
     private async Task<Recipe> InsertNewRecipe(RecipeDetails recipeDTO)
     {
+        var category = await _context.FindAsync<Category>(recipeDTO.Category.Id);
         var newRecipe = new Recipe()
         {
             Title = recipeDTO.Title,
-            CategoryId = recipeDTO.Category.Id,
+            Category = category,
             ShortDescription = recipeDTO.ShortDescription,
             Description = recipeDTO.Description,
             Directions = recipeDTO.Directions,
@@ -127,7 +132,7 @@ public class RecipeService(RecipeFriendsDbContext context) : IRecipeService
         await _context.Recipes.AddAsync(newRecipe);
         UpdateRecipeTags(recipeDTO, newRecipe);
         UpdateRecipeEquipment(recipeDTO, newRecipe);
-        RecipeService.UpdateRecipeIngredients(recipeDTO, newRecipe);
+        UpdateRecipeIngredients(recipeDTO, newRecipe);
         return newRecipe;
     }
 
@@ -191,7 +196,7 @@ public class RecipeService(RecipeFriendsDbContext context) : IRecipeService
         }
     }
 
-    private static void UpdateRecipeIngredients(RecipeDetails recipeDTO, Recipe existingRecipe)
+    private void UpdateRecipeIngredients(RecipeDetails recipeDTO, Recipe existingRecipe)
     {
         // Handle ingerdients
         // Identify ingredients that are no longer associated
@@ -208,16 +213,19 @@ public class RecipeService(RecipeFriendsDbContext context) : IRecipeService
             var ingredient = existingRecipe.Ingredients.FirstOrDefault(
                 i => i.Id == ingredientDTO.Id
             );
+            var m = _context.Measurements.Find(ingredientDTO.Measurement.Id);
             if (ingredient == null)
             {
+                
                 // add new ingredient
                 ingredient = new Ingredient()
                 {
                     Order = ingredientDTO.Order,
                     Name = ingredientDTO.Name,
                     Amount = ingredientDTO.Amount,
-                    MeasurementId = ingredientDTO.Measurement.Id
+                    MeasurementNew = m
                 };
+                
                 existingRecipe.Ingredients.Add(ingredient);
             }
             else
@@ -226,7 +234,7 @@ public class RecipeService(RecipeFriendsDbContext context) : IRecipeService
                 ingredient.Order = ingredientDTO.Order;
                 ingredient.Name = ingredientDTO.Name;
                 ingredient.Amount = ingredientDTO.Amount;
-                ingredient.MeasurementId = ingredientDTO.Measurement.Id;
+                ingredient.MeasurementNew = m;
             }
         }
     }
