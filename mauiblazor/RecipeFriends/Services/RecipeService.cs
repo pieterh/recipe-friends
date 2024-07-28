@@ -210,9 +210,10 @@ public class RecipeService(RecipeFriendsDbContext context) : IRecipeService
         // add new ingredients or update existing
         foreach (var ingredientDTO in recipeDTO.Ingredients)
         {
-            var ingredient = existingRecipe.Ingredients.FirstOrDefault(
+            var ingredient = ingredientDTO.Id > 0 ? existingRecipe.Ingredients.FirstOrDefault(
                 i => i.Id == ingredientDTO.Id
-            );
+            ) : null;
+            
             var m = _context.Measurements.Find(ingredientDTO.Measurement.Id);
             if (ingredient == null)
             {
