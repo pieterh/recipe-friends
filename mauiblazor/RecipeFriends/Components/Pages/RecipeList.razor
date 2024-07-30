@@ -89,19 +89,23 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await RefreshRecipes();
-        tags = await RecipeService.GetTagsAsync(CancellationToken.None);
-        _selectedItems = tags.ToHashSet();
-        _filterItems = tags.ToHashSet();
+        try{
+            await RefreshRecipes();
+            tags = await RecipeService.GetTagsAsync(CancellationToken.None);
+            _selectedItems = tags.ToHashSet();
+            _filterItems = tags.ToHashSet();
 
-        _filterDefinition = new FilterDefinition<RecipeInfo>
-            {
-                FilterFunction = (x) =>
+            _filterDefinition = new FilterDefinition<RecipeInfo>
                 {
-                    var f = _filterItems.Select(x => x.Name).Intersect(x.Tags);
-                    return f.Count() > 0;
-                }
-            };
+                    FilterFunction = (x) =>
+                    {
+                        var f = _filterItems.Select(x => x.Name).Intersect(x.Tags);
+                        return f.Count() > 0;
+                    }
+                };
+        }catch(Exception e){
+            Console.WriteLine(e.Message);            
+        }
     }
 
     private Func<RecipeInfo, bool> _quickFilter => x =>
