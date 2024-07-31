@@ -17,8 +17,8 @@ internal class IngredientItemDrawer : ItemDrawer
                     {    
                         row.Spacing(5);
                         row.AutoItem().Text($"{Index + 1}.");
-                        row.RelativeItem().AlignLeft().Text($"{ingredient.Name}" );
-                        row.RelativeItem().AlignRight().Text($"{ingredient.Amount} {ingredient.Measurement.Name}" );
+                        row.RelativeItem(3).AlignLeft().Text($"{ingredient.Name}" );
+                        row.RelativeItem(2).AlignRight().Text($"{ingredient.Amount} {ingredient.Measurement.Name}" );
                     });
         });
     }
