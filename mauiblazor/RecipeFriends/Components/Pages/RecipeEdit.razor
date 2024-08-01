@@ -62,8 +62,9 @@
                             </MudTabPanel>
                             <MudTabPanel Text="Ingredients">
                                 <MudPaper Height="329px" xs="12">
-                                    <MudDataGrid MaxHeight="225px" T="IngredientDetails" Items="@recipeDetails.Ingredients"
+                                    <MudDataGrid MaxHeight="225px" T="IngredientDetails" Items="@recipeDetails.Ingredients.OrderBy(x => x.Order).ToList()"
                                         EditMode="DataGridEditMode.Cell" EditTrigger="DataGridEditTrigger.OnRowClick"
+                                        SortMode="@SortMode.Single"
                                         ReadOnly="false" Bordered="true" Dense="true" RowsPerPage="5">
                                         <ToolBarContent>
                                             <MudButton OnClick="() => AddIngredient()" Color="@Color.Success"
@@ -71,9 +72,9 @@
                                         </ToolBarContent>
                                         <Columns>
                                             <PropertyColumn Property="x => x.Order" Title="Order" SortBy="@_sortBy" />
-                                            <PropertyColumn Property="x => x.Name" Title="Name" />
-                                            <PropertyColumn Property="x => x.Amount" Title="Amount" />
-                                            <PropertyColumn Property="x => x.Measurement" Title="Measurement">
+                                            <PropertyColumn Property="x => x.Name" Title="Name" Sortable="false"/>
+                                            <PropertyColumn Property="x => x.Amount" Title="Amount" Sortable="false" />
+                                            <PropertyColumn Property="x => x.Measurement" Title="Measurement" Sortable="false">
                                                 <EditTemplate Context="ingredient">
                                                     <MudSelect T="MeasurementInfo" @bind-Value="ingredient.Item.Measurement"
                                                         Margin="@Margin.Dense">
@@ -184,8 +185,7 @@
                     ShortDescription = "",
                     Description = "",
                     Directions = "",
-                    Category =
-                allCategories.First(),
+                    Category = allCategories.First(),
                     PreparationTime = TimeOnly.MinValue,
                     CookingTime = TimeOnly.MinValue
                 };
@@ -194,7 +194,6 @@
         // Start a background task to load the images.
         _ = Task.Run(async () => {
             await LoadImagesAsync(recipeDetails.Images);
-            //await InvokeAsync(StateHasChanged);
         });
 
         Logger.Info("<= OnInitializedAsync");
@@ -225,7 +224,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    // custom sort by name length
+    // custom sort by order
     private Func<IngredientDetails, object> _sortBy => x =>
     {
         return x.Order;
