@@ -1,7 +1,7 @@
 ﻿@typeparam TInfo where TInfo : INameable
 
 <MudElement>
-    <MudChipSet AllClosable="true" OnClose="ChipClosed" style="display:inline-flex">
+    <MudChipSet T="TInfo" AllClosable="true" OnClose="ChipClosed" style="display:inline-flex">
         @foreach (var item in Items)
         {
             <MudChip Text="@item.Name" Tag="@item"></MudChip>
@@ -27,9 +27,9 @@
     [Parameter]
     public EventCallback<List<TInfo>> OnItemsUpdated { get; set; }
 
-    public void ChipClosed(MudChip chip) => RemoveItem((TInfo)chip!.Tag);
+    public void ChipClosed(MudChip<TInfo> chip) => RemoveItem((TInfo)chip!.Tag);
 
-    private async Task<IEnumerable<TInfo>> SearchItems(string value)
+    private async Task<IEnumerable<TInfo>> SearchItems(string value, CancellationToken token)
     {
         filteredItems = AllItems
         .Where(t => t.Name.Contains(inputText, StringComparison.OrdinalIgnoreCase))
