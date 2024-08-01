@@ -76,7 +76,7 @@
         <PackageReference Include="Microsoft.AspNetCore.Components" Version="8.0.7" />
         <PackageReference Include="SixLabors.Fonts" Version="2.0.4" />
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
-        <PackageReference Include="CommunityToolkit.Maui" Version="7.0.1" />
+        <PackageReference Include="CommunityToolkit.Maui" Version="9.0.2" />
         <PackageReference Include="MudBlazor" Version="6.12.0" />
         <PackageReference Include="PSC.Blazor.Components.MarkdownEditor" Version="2.0.19" />
         <PackageReference Include="NLog" Version="5.3.2" />
