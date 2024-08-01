@@ -79,7 +79,6 @@
         <PackageReference Include="Microsoft.AspNetCore.Components" Version="8.0.0" />
         <PackageReference Include="SixLabors.Fonts" Version="2.0.1" />
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
-        <!-- <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />     -->
         <PackageReference Include="CommunityToolkit.Maui" Version="7.0.1" />
         <PackageReference Include="MudBlazor" Version="6.12.0" />
         <PackageReference Include="PSC.Blazor.Components.MarkdownEditor" Version="2.0.19" />
