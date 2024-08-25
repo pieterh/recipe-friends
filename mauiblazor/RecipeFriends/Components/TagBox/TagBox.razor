@@ -1,4 +1,5 @@
 ﻿@typeparam TInfo where TInfo : INameable
+@namespace RecipeFriends.Components.TagBox
 
 <MudElement>
     <MudChipSet T="TInfo" AllClosable="true" OnClose="ChipClosed" style="display:inline-flex">
@@ -14,8 +15,6 @@
 </MudElement>
 
 @code {
-    private string inputText = string.Empty;
-
     private List<TInfo> filteredItems = new List<TInfo>();
 
     [Parameter]
@@ -32,10 +31,9 @@
     private async Task<IEnumerable<TInfo>> SearchItems(string value, CancellationToken token)
     {
         filteredItems = AllItems
-        .Where(t => t.Name.Contains(inputText, StringComparison.OrdinalIgnoreCase))
+        .Where(t => t.Name.Contains(value, StringComparison.OrdinalIgnoreCase))
         .Where(t => !Items.Any(rt => rt.Id == t.Id))
         .OrderBy((x) => x.Name)
-        .Take(10)
         .ToList();
         return await Task.FromResult<IEnumerable<TInfo>>(filteredItems);
     }
@@ -43,7 +41,6 @@
     private void AddItem(TInfo item)
     {
         Items.Add(item);
-        inputText = string.Empty;
         OnItemsUpdated.InvokeAsync(Items);
     }
 

@@ -1,4 +1,5 @@
-﻿@page "/recipe/edit/{Id:int}"
+﻿@page "/recipe/edit/{Id:int}" 
+
 @using RecipeFriends.Shared.DTO
 @using RecipeFriends.Components.TagBox
 @using RecipeFriends.Components.FileDropZone
@@ -18,7 +19,7 @@
     </TitleContent>
     <DialogContent>
         <div>
-            <MudContainer Style="height: 600px; overflow-y: scroll">
+            <MudContainer Style="height: 700px; overflow-y: scroll">
                 @if (recipeDetails == null)
                 {
                     <p><em>Loading...</em></p>
@@ -26,10 +27,8 @@
                 else
                 {
                     <EditForm Model="@recipeDetails" OnValidSubmit="HandleValidSubmit">
-
                         <DataAnnotationsValidator />
                         <ValidationSummary />
-
                         <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
                             <MudTabPanel Text="Properties">
                                 <MudPaper Height="250px" xs="12" Class="pa-4">
@@ -60,12 +59,11 @@
                                         HideIcons='@(new string[] { "code", "image", "link", "quote", "guide" })' />
                                 </MudPaper>
                             </MudTabPanel>
-                            <MudTabPanel Text="Ingredients">
-                                <MudPaper Height="329px" xs="12">
-                                    <MudDataGrid MaxHeight="225px" T="IngredientDetails" Items="@recipeDetails.Ingredients.OrderBy(x => x.Order).ToList()"
+                            <MudTabPanel Text="Ingredients">                                 
+                                    <MudDataGrid Height="425px" T="IngredientDetails" Items="@recipeDetails.Ingredients.OrderBy(x => x.Order).ToList()"
                                         EditMode="DataGridEditMode.Cell" EditTrigger="DataGridEditTrigger.OnRowClick"
                                         SortMode="@SortMode.Single"
-                                        ReadOnly="false" Bordered="true" Dense="true" RowsPerPage="5">
+                                        ReadOnly="false" Bordered="true" Dense="true" RowsPerPage="10">
                                         <ToolBarContent>
                                             <MudButton OnClick="() => AddIngredient()" Color="@Color.Success"
                                                 Class="add-item-btn">Add Item</MudButton>
@@ -86,8 +84,11 @@
                                                 </EditTemplate>
                                             </PropertyColumn>
                                         </Columns>
+                                        <PagerContent>
+                                            <MudDataGridPager T="IngredientDetails" PageSizeOptions=@(new int[] {10})/>
+                                        </PagerContent>
                                     </MudDataGrid>
-                                </MudPaper>
+                                
                             </MudTabPanel>
                             <MudTabPanel Text="Equipment">
                                 <TagBox TInfo="EquipmentInfo" AllItems="@allEquipment" Items="recipeDetails.Equipment">

@@ -1,4 +1,6 @@
-﻿<MudElement Height="100%" style="@Style">
+﻿@namespace RecipeFriends.Components.FileDropZone
+
+<MudElement Height="100%" style="@Style">
     <MudFileUpload T="IReadOnlyList<IBrowserFile>" 
             OnFilesChanged=OnInputFileChanged 
             AppendMultipleFiles 
@@ -8,13 +10,13 @@
             InputStyle="opacity:0"
             @ondragenter="@SetDragClass" @ondragleave="@ClearDragClass" @ondragend="@ClearDragClass" 
             Style="margin-top:0px; height:100%" >
-        <ButtonTemplate >
+        <ActivatorContent >
             <span id="a">
                 <MudPaper Height="100%" Outlined="true" Class="@DragClass">
                     <MudText Typo="Typo.h6">Drag and drop files here or click</MudText>
                 </MudPaper>
             </span>
-        </ButtonTemplate>
+        </ActivatorContent>
     </MudFileUpload>
 </MudElement>    
 

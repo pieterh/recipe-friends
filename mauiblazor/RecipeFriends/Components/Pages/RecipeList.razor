@@ -33,7 +33,7 @@ else
         <PropertyColumn Property="x => x.TagsAsString" Title="Tags">
             <FilterTemplate>
                 <MudIconButton OnClick="@OpenTagFilter" Icon="@_icon" Size="@Size.Small" />
-                <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)" />
+                <MudOverlay @bind-Visible="@_filterOpen" AutoClose="true" />
                 <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
                     Style="width:150px">
                     <MudStack Spacing="0">
