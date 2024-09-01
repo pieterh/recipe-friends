@@ -1,5 +1,3 @@
-
-
 using Markdig.Syntax;
 using QuestPDF.Fluent;
 

@@ -1,7 +1,6 @@
 using Markdig.Syntax;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
-using SkiaSharp;
 
 namespace RecipeFriends.Shared.PDF.Converters;
 
@@ -33,38 +32,15 @@ public class ListBlockConverter
 
                         row.Spacing(5);
 
-                        row.ConstantItem(25, Unit.Point).Element(x => debugOn ? x.DebugArea() : x)
-                            .Height(25).Width(25)
-                            .Canvas((canvas, size) =>
-                            {
-                                using var circlePaint = new SKPaint
-                                {
-                                    Color = SKColors.Black, // SKColor.Parse("#FF642F"),
-                                    Style = SKPaintStyle.Fill
-                                };
-
-                                using var textPaint = new SKPaint
-                                {
-                                    Color = SKColors.White,
-                                    Style = SKPaintStyle.Fill,
-                                    TextAlign = SKTextAlign.Center,
-                                    TextSize = ConvertRecipeToPDF.FontSizeL1,
-                                    Typeface = SKTypeface.FromFamilyName(
-                                                        ConvertRecipeToPDF.FontFamilyLI,
-                                                        SKFontStyleWeight.Bold,
-                                                        SKFontStyleWidth.Normal,
-                                                        SKFontStyleSlant.Italic)
-                                };
-                                // move origin to the center of the available space
-                                canvas.Translate(size.Width / 2, (size.Height / 2) - 3);
-
-                                textPaint.GetFontMetrics(out SKFontMetrics f);
-                                float textHeight = f.Descent - f.Ascent;
-                                float textOffset = (textHeight / 2) - f.Descent - 1;
-                                // draw a circle
-                                canvas.DrawCircle(0, 0, 3, circlePaint);
-                                //canvas.DrawText(nr.ToString(), 0, textOffset, textPaint);
-                            });
+        //  row.ConstantItem(25, Unit.Point).Element(x => debugOn ? x.DebugArea() : x)
+        //                     .Height(25).Width(25)
+        //                     .Svg(handler => {
+        //                             return $"""
+        //                                      <svg height="10" width="10" xmlns="http://www.w3.org/2000/svg">
+        //                                        <circle r="3" cx="{25 / 2}" cy="{(25 / 2) - 3}" fill="black" />
+        //                                       </svg>
+        //                                     """;
+        //                         });
 
                         row.RelativeItem().Element(x => debugOn ? x.DebugArea() : x)
                             .PaddingTop(2, Unit.Point)

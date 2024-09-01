@@ -42,38 +42,11 @@ public class RecipeDirections
 
                         row.Spacing(5);
 
+                        var bullet = GetBulletPNG(nr);
+
                         row.ConstantItem(25, Unit.Point).Element(x => debugOn ? x.DebugArea() : x)
                             .Height(25).Width(25)
-                            .Canvas((canvas, size) =>
-                            {
-                                using var circlePaint = new SKPaint
-                                {
-                                    Color = SKColor.Parse("#FF642F"),
-                                    Style = SKPaintStyle.Fill
-                                };
-
-                                using var textPaint = new SKPaint
-                                {
-                                    Color = SKColors.White,
-                                    Style = SKPaintStyle.Fill,
-                                    TextAlign = SKTextAlign.Center,
-                                    TextSize = ConvertRecipeToPDF.FontSizeL1,
-                                    Typeface = SKTypeface.FromFamilyName(
-                                                        ConvertRecipeToPDF.FontFamilyLI,
-                                                        SKFontStyleWeight.Bold,
-                                                        SKFontStyleWidth.Normal,
-                                                        SKFontStyleSlant.Italic)
-                                };
-                                // move origin to the center of the available space
-                                canvas.Translate(size.Width / 2, (size.Height / 2) - 3);
-
-                                textPaint.GetFontMetrics(out SKFontMetrics f);
-                                float textHeight = f.Descent - f.Ascent;
-                                float textOffset = (textHeight / 2) - f.Descent - 1;
-                                // draw a circle
-                                canvas.DrawCircle(0, 0, 10, circlePaint);
-                                canvas.DrawText(nr.ToString(), 0, textOffset, textPaint);
-                            });
+                            .Image(bullet);
 
                         row.RelativeItem().Element(x => debugOn ? x.DebugArea() : x)
                             .PaddingTop(2, Unit.Point)
@@ -86,5 +59,47 @@ public class RecipeDirections
                 i++;
             }
         }
+    }
+
+    private static byte[] GetBulletPNG(int nr)
+    {
+        int width = 100, height = 100;
+        int radius = 40, fontSize = 40;
+        SKBitmap bitmap = new(width, height);
+
+        using SKCanvas sKCanvas = new(bitmap);
+        using var circlePaint = new SKPaint
+        {
+            Color = SKColor.Parse("#FF642F"),
+            Style = SKPaintStyle.Fill
+        };
+
+        using var textPaint = new SKPaint
+        {
+            Color = SKColors.White,
+            Style = SKPaintStyle.Fill,
+            TextAlign = SKTextAlign.Center,
+            TextSize = fontSize, //ConvertRecipeToPDF.FontSizeL1,
+            Typeface = SKTypeface.FromFamilyName(
+                                ConvertRecipeToPDF.FontFamilyLI,
+                                SKFontStyleWeight.Bold,
+                                SKFontStyleWidth.Normal,
+                                SKFontStyleSlant.Italic)
+        };
+
+        textPaint.GetFontMetrics(out SKFontMetrics f);
+        float textHeight = f.Descent - f.Ascent;
+        float textOffset = (textHeight / 2) - f.Descent - 1;
+
+        // draw a circle
+        sKCanvas.DrawCircle(width / 2, height / 2, radius, circlePaint);
+        sKCanvas.DrawText(nr.ToString(), width / 2, (height / 2) + textOffset, textPaint);
+
+        using MemoryStream memStream = new();
+        using SKManagedWStream wstream = new(memStream);
+        bitmap.Encode(wstream, SKEncodedImageFormat.Png, 100);
+
+        byte[] data = memStream.ToArray();
+        return data;
     }
 }

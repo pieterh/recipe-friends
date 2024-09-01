@@ -66,19 +66,19 @@ public static class FontSupport
                 Shared.PDF.ConvertRecipeToPDF.RegisterFont(fontInfo.FontDescription.FontFamilyInvariantCulture, fontStream);
 
 
-                fontStream.Position = 0;
-                using var fontData = SkiaSharp.SKData.Create(fontStream);
-                foreach (var index in Enumerable.Range(0, 256))
-                {
-                    var typeface = SkiaSharp.SKTypeface.FromData(fontData, index);
+                // fontStream.Position = 0;
+                // using var fontData = SkiaSharp.SKData.Create(fontStream);
+                // foreach (var index in Enumerable.Range(0, 256))
+                // {
+                //     var typeface = SkiaSharp.SKTypeface.FromData(fontData, index);
 
-                    if (typeface == null)
-                        break;
+                //     if (typeface == null)
+                //         break;
 
-                    var s = typeface.IsBold ? "Bold" : (typeface.IsItalic ? "Italic" : "");
-                    _logger.Info($"{Path.GetFileName(fontPathFile)} - {typeface.FamilyName} - {s} - {typeface.FontWeight} ");
+                //     var s = typeface.IsBold ? "Bold" : (typeface.IsItalic ? "Italic" : "");
+                //     _logger.Info($"{Path.GetFileName(fontPathFile)} - {typeface.FamilyName} - {s} - {typeface.FontWeight} ");
 
-                }
+                // }
 
             }
             catch (FileNotFoundException fnfe)

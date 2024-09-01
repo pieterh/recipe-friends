@@ -8,6 +8,7 @@ using Document = QuestPDF.Fluent.Document;
 using RecipeFriends.Shared.DTO;
 using RecipeFriends.Shared.PDF.Components;
 using QuestPDF.Drawing.Exceptions;
+using NLog;
 
 namespace RecipeFriends.Shared.PDF;
 
@@ -78,6 +79,7 @@ public class ConvertRecipeToPDF
         
     private Document ToDocumentInternal(RecipeDetails recipeDetails, LoadImageDelegate? loadImageDelegate, bool pageNumbers)
     {
+        try{
         var ingredients = recipeDetails.Ingredients.OrderBy((x) => x.Order);
         var equipment = recipeDetails.Equipment.Select(x => x.Name).Order();
 
@@ -162,6 +164,13 @@ public class ConvertRecipeToPDF
         var d = document.GetSettings();
         d.ImageRasterDpi = 300;
         return document;
+                }catch(DocumentDrawingException dde){
+            Logger.Error(dde, "There was an unhandled document drawing exception while generating the pdf.");
+        }
+        catch(Exception e){
+            Logger.Error(e, "There was an unhandled error generating pdf.");
+        }
+        return null;
     }
 
     private static void AddRecipeQuickStats(IContainer container, RecipeDetails recipeDetails)
