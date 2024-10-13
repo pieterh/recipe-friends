@@ -8,7 +8,7 @@
             "name": ".NET MAUI",
             "type": "maui",
             "request": "launch",
-            "preLaunchTask": "dotnet-meteor: Build",
+            "preLaunchTask": "maui: Build",
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
