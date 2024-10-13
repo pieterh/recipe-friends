@@ -9,7 +9,7 @@ using RecipeFriends.Shared.DTO;
 using RecipeFriends.Shared.PDF.Components;
 using QuestPDF.Drawing.Exceptions;
 using NLog;
-
+ 
 namespace RecipeFriends.Shared.PDF;
 
 public readonly struct ImageSize(int width, int height)
@@ -121,7 +121,7 @@ public class ConvertRecipeToPDF
                                             RecipeDirections.WriteDirections(recipeDetails, x);
                                         });
                                         
-                                row.RelativeItem(6).Element(x => debugOn ? x.DebugArea() : x).MinimalBox()
+                                row.RelativeItem(6).Element(x => debugOn ? x.DebugArea() : x).Shrink()
                                         .Column(x =>
                                         {
                                             x.Item()
