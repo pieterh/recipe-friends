@@ -76,7 +76,6 @@
         <PackageReference Include="Microsoft.AspNetCore.Components" Version="8.0.10" />
         <PackageReference Include="SixLabors.Fonts" Version="2.0.4" />
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
-        <PackageReference Include="CommunityToolkit.Maui" Version="9.0.3" /> 
         <PackageReference Include="MudBlazor" Version="7.11.0" />
         <PackageReference Include="PSC.Blazor.Components.MarkdownEditor" Version="8.0.4" />
         <PackageReference Include="NLog" Version="5.3.4" />
@@ -93,9 +92,6 @@
     <ItemGroup>
         <Content Remove="NLog.config" />
     </ItemGroup>
-    <!-- <ItemGroup>
-        <EmbeddedResource Include="NLog.config" />
-    </ItemGroup>  -->
 
     <!-- Build Properties must be defined within these property groups to ensure successful publishing
         to the Mac App Store. See: https://aka.ms/maui-publish-app-store#define-build-properties-in-your-project-file -->

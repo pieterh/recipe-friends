@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
 
 using MudBlazor.Services;
-using CommunityToolkit.Maui;
 
 using NLog;
 using NLog.Config;
@@ -77,12 +76,6 @@ public static class MauiProgram
                         )
                 );
 #endif
-            })
-            .UseMauiCommunityToolkit(options =>
-            {
-                options.SetShouldSuppressExceptionsInConverters(false);
-                options.SetShouldSuppressExceptionsInBehaviors(false);
-                options.SetShouldSuppressExceptionsInAnimations(false);
             })
             .ConfigureFonts(fonts =>
             {

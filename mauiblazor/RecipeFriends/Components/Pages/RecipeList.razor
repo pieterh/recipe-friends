@@ -222,23 +222,47 @@ else
 
     private async void DownloadRecipe(int id)
     {
+        Console.WriteLine("== go");
         try
         {
-            string initialPath = RecipeFriendsService.GetDocumentsPath();
-            var result = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(initialPath, CancellationToken.None);
-            var pdf = await DocumentService.RecipeToPDFAsync(id, CancellationToken.None);
-            if (result.IsSuccessful)
+
+            var customFileType = new FilePickerFileType(
+
+                new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+                    { DevicePlatform.WinUI, new[] { ".pdf", ".pdf" } }, // file extension
+                    { DevicePlatform.macOS, new[] { "pdf", "pdf" } }, // UTType values
+                    { DevicePlatform.MacCatalyst, new[] { "pdf", "pdf" } }, // UTType values
+                });
+
+            PickOptions options = new()
             {
-                using FileStream outputStream =
-                System.IO.File.OpenWrite($"{result.Folder.Path}{Path.DirectorySeparatorChar}Recipe.pdf");
+                PickerTitle = "Please select a directory for the pdf",
+                FileTypes = customFileType,
+            };
+
+            var result = await FolderPicker.Default.PickAsync("~");
+            
+            if (result != null && result.IsSuccessful && result.Folder != null && !string.IsNullOrWhiteSpace(result.Folder.Path))
+            {                
+                var pdf = await DocumentService.RecipeToPDFAsync(id, CancellationToken.None);                
+                var pdfFileName = $"{result.Folder.Path}{Path.DirectorySeparatorChar}Recipe.pdf";
+                
+                if (File.Exists(pdfFileName))
+                    File.Delete(pdfFileName);
+
+                using FileStream outputStream = System.IO.File.OpenWrite(pdfFileName);
                 using StreamWriter streamWriter = new StreamWriter(outputStream);
                 await streamWriter.BaseStream.WriteAsync(pdf);
+                await streamWriter.FlushAsync();
+                streamWriter.Close();
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
         }
+        Console.WriteLine("== done");
     }
 
     private async Task RefreshRecipes()
